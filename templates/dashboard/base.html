@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}{% block dashboard_title %}Admin Dashboard{% endblock %} | Digital Lost and Found{% endblock %}
+
+{% block content %}
+<section class="admin-hero">
+    <div>
+        <p class="admin-hero__eyebrow">Staff workspace</p>
+        <h1 class="admin-hero__title">{% block admin_page_title %}Admin Dashboard{% endblock %}</h1>
+        <p class="admin-hero__text">
+            {% block admin_page_text %}Manage items, review users, and keep the campus lost and found flow organized without leaving the main site.{% endblock %}
+        </p>
+    </div>
+    <div class="admin-hero__actions">
+        <a href="{% url 'item_list' %}" class="btn-secondary">Public site</a>
+        <a href="{% url 'report_found_item' %}" class="btn-primary">New found report</a>
+    </div>
+</section>
+
+<nav class="admin-tabs" aria-label="Dashboard navigation">
+    <a href="{% url 'admin_dashboard' %}" class="admin-tab {% if dashboard_section == 'overview' %}admin-tab--active{% endif %}">Overview</a>
+    <a href="{% url 'admin_item_list' %}" class="admin-tab {% if dashboard_section == 'items' %}admin-tab--active{% endif %}">Items</a>
+    <a href="{% url 'admin_user_list' %}" class="admin-tab {% if dashboard_section == 'users' %}admin-tab--active{% endif %}">Users</a>
+</nav>
+
+{% block dashboard_content %}{% endblock %}
+{% endblock %}

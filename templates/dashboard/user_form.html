@@ -1,0 +1,53 @@
+{% extends "dashboard/base.html" %}
+
+{% block dashboard_title %}Edit User{% endblock %}
+{% block admin_page_title %}Edit User Account{% endblock %}
+{% block admin_page_text %}Update account access and profile details for {{ managed_user.username }}.{% endblock %}
+
+{% block dashboard_content %}
+<section class="panel admin-form-panel">
+    <div class="admin-panel__head">
+        <div>
+            <h2 class="admin-panel__title">{{ managed_user.username }}</h2>
+            <p class="admin-panel__text">{{ managed_user.email|default:"No email address saved" }}</p>
+        </div>
+    </div>
+
+    <form method="post" class="admin-form-grid">
+        {% csrf_token %}
+
+        <div class="admin-form-section admin-form-section--full">
+            <h3 class="admin-form-section__title">Account details</h3>
+        </div>
+
+        {% for field in user_form %}
+            <div class="admin-form-field">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <p class="admin-form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <div class="admin-form-section admin-form-section--full">
+            <h3 class="admin-form-section__title">Profile details</h3>
+        </div>
+
+        {% for field in profile_form %}
+            <div class="admin-form-field {% if field.name == 'identification_number' %}admin-form-field--full{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% for error in field.errors %}
+                    <p class="admin-form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <div class="admin-form-field admin-form-field--full admin-form-actions">
+            <button type="submit">Save user</button>
+            <a href="{% url 'admin_user_list' %}" class="btn-secondary">Back to users</a>
+        </div>
+    </form>
+</section>
+{% endblock %}

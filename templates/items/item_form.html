@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}{{ page_title }} | Digital Lost and Found{% endblock %}
+
+{% block content %}
+<section class="panel narrow">
+    <h1>{{ page_title }}</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit">{{ submit_label }}</button>
+    </form>
+</section>
+{% endblock %}

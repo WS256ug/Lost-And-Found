@@ -1,0 +1,89 @@
+{% extends "dashboard/base.html" %}
+
+{% block dashboard_title %}Manage Users{% endblock %}
+{% block admin_page_title %}User Management{% endblock %}
+{% block admin_page_text %}Review account access, profile roles, and contact details from one place.{% endblock %}
+
+{% block dashboard_content %}
+<section class="panel admin-table-panel">
+    <form method="get" class="admin-filter-grid admin-filter-grid--compact">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by username, email, phone, or ID">
+        <select name="role">
+            <option value="">All roles</option>
+            {% for value, label in role_choices %}
+                <option value="{{ value }}" {% if selected_role == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="access">
+            <option value="">All access levels</option>
+            <option value="staff" {% if selected_access == 'staff' %}selected{% endif %}>Staff only</option>
+            <option value="inactive" {% if selected_access == 'inactive' %}selected{% endif %}>Inactive only</option>
+        </select>
+        <button type="submit">Filter</button>
+    </form>
+</section>
+
+<section class="panel admin-table-panel">
+    <div class="admin-panel__head">
+        <div>
+            <h2 class="admin-panel__title">Accounts</h2>
+            <p class="admin-panel__text">{{ user_rows|length }} user{{ user_rows|length|pluralize }} matched your current filters.</p>
+        </div>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>User</th>
+                    <th>Role</th>
+                    <th>Phone</th>
+                    <th>ID number</th>
+                    <th>Access</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for row in user_rows %}
+                    <tr>
+                        <td>
+                            <div class="admin-item-cell">
+                                <div class="admin-thumb admin-thumb--placeholder">{{ row.user.username|first|upper }}</div>
+                                <div>
+                                    <p class="admin-item-cell__title">{{ row.user.username }}</p>
+                                    <p class="admin-item-cell__meta">{{ row.user.email|default:"No email address" }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>
+                            {% if row.profile %}
+                                {{ row.profile.get_role_display }}
+                            {% else %}
+                                <span class="admin-badge admin-badge--muted">No profile</span>
+                            {% endif %}
+                        </td>
+                        <td>{% if row.profile and row.profile.phone_number %}{{ row.profile.phone_number }}{% else %}-{% endif %}</td>
+                        <td>{% if row.profile and row.profile.identification_number %}{{ row.profile.identification_number }}{% else %}-{% endif %}</td>
+                        <td>
+                            {% if row.user.is_staff %}
+                                <span class="admin-badge admin-badge--success">Staff</span>
+                            {% elif row.user.is_active %}
+                                <span class="admin-badge admin-badge--muted">Active</span>
+                            {% else %}
+                                <span class="admin-badge admin-badge--warning">Inactive</span>
+                            {% endif %}
+                        </td>
+                        <td><a href="{% url 'admin_user_edit' row.user.pk %}" class="admin-link">Edit</a></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="6">
+                            <div class="admin-empty">No users matched your filters.</div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</section>
+{% endblock %}

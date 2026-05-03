@@ -1,0 +1,81 @@
+{% extends "base.html" %}
+{% block title %}Items | Digital Lost and Found{% endblock %}
+
+{% block content %}
+<section class="hero">
+    <div>
+        <h1>Campus Lost and Found</h1>
+        <p>Report items, browse current listings, and track recovery status from one place.</p>
+    </div>
+</section>
+
+<section class="panel">
+    <form method="get" class="filters">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search by title, description, or location">
+        <select name="status">
+            <option value="">All statuses</option>
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="category">
+            <option value="">All categories</option>
+            {% for value, label in category_choices %}
+                <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Search</button>
+    </form>
+</section>
+
+<div class="listing-header">
+    <p class="listing-count">{{ items|length }} item{{ items|length|pluralize }} found</p>
+</div>
+
+<section class="item-grid">
+    {% for item in items %}
+        <a href="{% url 'item_detail' item.pk %}" class="item-card">
+
+            <div class="item-card__image-wrap">
+                {% if item.image %}
+                    <img src="{{ item.image.url }}" alt="{{ item.title }}" class="item-card__image">
+                {% else %}
+                    <div class="item-card__placeholder">
+                        {% if item.category == 'electronics' %}
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+                        {% elif item.category == 'documents' %}
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="12" y2="17"/></svg>
+                        {% elif item.category == 'clothing' %}
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.38 3.46L16 2a4 4 0 0 1-8 0L3.62 3.46a2 2 0 0 0-1.34 2.23l.58 3.57a1 1 0 0 0 .99.84H6v10c0 1.1.9 2 2 2h8a2 2 0 0 0 2-2V10h2.15a1 1 0 0 0 .99-.84l.58-3.57a2 2 0 0 0-1.34-2.23z"/></svg>
+                        {% else %}
+                            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                        {% endif %}
+                        <span>{{ item.get_category_display }}</span>
+                    </div>
+                {% endif %}
+
+                <span class="pill pill--{{ item.report_type }}">{{ item.get_report_type_display }}</span>
+            </div>
+
+            <div class="item-card__body">
+                <p class="item-card__title">{{ item.title }}</p>
+                <p class="item-card__desc">{{ item.description|truncatechars:60 }}</p>
+                <div class="item-card__footer">
+                    <span class="item-card__location">
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                        {{ item.location }}
+                    </span>
+                    <span class="badge badge-{{ item.report_type }}">{{ item.get_status_display }}</span>
+                </div>
+            </div>
+
+        </a>
+    {% empty %}
+        <div class="empty-state">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <p>No items matched your search.</p>
+            <a href="{% url 'item_list' %}" class="btn-reset">Clear filters</a>
+        </div>
+    {% endfor %}
+</section>
+{% endblock %}

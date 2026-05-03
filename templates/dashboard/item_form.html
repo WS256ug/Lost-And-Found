@@ -1,0 +1,45 @@
+{% extends "dashboard/base.html" %}
+
+{% block dashboard_title %}Edit Item{% endblock %}
+{% block admin_page_title %}Edit Item Report{% endblock %}
+{% block admin_page_text %}Update report details, reporter assignment, image, and status for this item.{% endblock %}
+
+{% block dashboard_content %}
+<section class="panel admin-form-panel">
+    <div class="admin-panel__head">
+        <div>
+            <h2 class="admin-panel__title">{{ item.title }}</h2>
+            <p class="admin-panel__text">Editing report #{{ item.pk }}</p>
+        </div>
+        <a href="{% url 'item_detail' item.pk %}" class="admin-link">Open public detail</a>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="admin-form-grid">
+        {% csrf_token %}
+
+        {% for field in form %}
+            <div class="admin-form-field {% if field.name == 'description' %}admin-form-field--full{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}
+                    <p class="admin-form-help">{{ field.help_text }}</p>
+                {% endif %}
+                {% for error in field.errors %}
+                    <p class="admin-form-error">{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endfor %}
+
+        <div class="admin-form-field admin-form-field--full admin-form-actions">
+            <button type="submit">Save changes</button>
+            <a href="{% url 'admin_item_list' %}" class="btn-secondary">Back to items</a>
+        </div>
+    </form>
+    {% if item.image %}
+        <div class="admin-image-preview">
+            <p class="admin-form-help">Current image</p>
+            <img src="{{ item.image.url }}" alt="{{ item.title }}" class="admin-image-preview__img">
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

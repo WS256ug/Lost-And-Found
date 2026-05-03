@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% block title %}Login | Digital Lost and Found{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <a href="{% url 'item_list' %}" class="auth-overlay" aria-label="Close sign in modal"></a>
+
+    <div class="auth-card auth-card--modal">
+        <a href="{% url 'item_list' %}" class="auth-close" aria-label="Close">&times;</a>
+        <h1 class="auth-title">Sign in</h1>
+        <p class="auth-subtitle">Access your campus lost and found account</p>
+
+        {% if form.non_field_errors %}
+            <div class="auth-error">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="auth-form" novalidate>
+            {% csrf_token %}
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            <div class="auth-field">
+                <input
+                    type="text"
+                    name="username"
+                    id="id_username"
+                    placeholder="Username"
+                    value="{{ form.username.value|default:'' }}"
+                    autocomplete="username"
+                >
+                {% if form.username.errors %}
+                    <p class="auth-field__error">{{ form.username.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="auth-field auth-field--password">
+                <input
+                    type="password"
+                    name="password"
+                    id="id_password"
+                    placeholder="Password"
+                    autocomplete="current-password"
+                >
+                <button type="button" class="auth-field__eye" onclick="togglePassword('id_password', this)" aria-label="Show password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                {% if form.password.errors %}
+                    <p class="auth-field__error">{{ form.password.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="auth-btn auth-btn--primary">Sign in</button>
+        </form>
+
+        <p class="auth-switch">
+            Don't have an account? <a href="{% url 'signup' %}">Registration</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword(fieldId, btn) {
+    const input = document.getElementById(fieldId);
+    const isHidden = input.type === "password";
+    input.type = isHidden ? "text" : "password";
+    btn.querySelector("svg").style.opacity = isHidden ? "1" : "0.4";
+}
+</script>
+{% endblock %}

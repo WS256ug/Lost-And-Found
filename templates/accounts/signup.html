@@ -1,0 +1,147 @@
+{% extends "base.html" %}
+{% block title %}Create Account | Digital Lost and Found{% endblock %}
+{% block body_class %}auth-page{% endblock %}
+
+{% block content %}
+<div class="auth-wrap">
+    <a href="{% url 'item_list' %}" class="auth-overlay" aria-label="Close registration modal"></a>
+
+    <div class="auth-card auth-card--wide auth-card--modal">
+        <a href="{% url 'item_list' %}" class="auth-close" aria-label="Close">&times;</a>
+        <h1 class="auth-title">Create an account</h1>
+        <p class="auth-subtitle">Join the campus lost and found network</p>
+
+        {% if form.non_field_errors %}
+            <div class="auth-error">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="auth-form auth-form--grid" novalidate>
+            {% csrf_token %}
+
+            <div class="auth-field">
+                <input
+                    type="text"
+                    name="username"
+                    id="id_username"
+                    placeholder="Username"
+                    value="{{ form.username.value|default:'' }}"
+                    autocomplete="username"
+                >
+                {% if form.username.errors %}
+                    <p class="auth-field__error">{{ form.username.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="auth-field">
+                <input
+                    type="email"
+                    name="email"
+                    id="id_email"
+                    placeholder="Email address"
+                    value="{{ form.email.value|default:'' }}"
+                    autocomplete="email"
+                >
+                {% if form.email.errors %}
+                    <p class="auth-field__error">{{ form.email.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="auth-field">
+                <input
+                    type="text"
+                    name="phone_number"
+                    id="id_phone_number"
+                    placeholder="Phone number"
+                    value="{{ form.phone_number.value|default:'' }}"
+                    autocomplete="tel"
+                >
+                {% if form.phone_number.errors %}
+                    <p class="auth-field__error">{{ form.phone_number.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="auth-field auth-field--full">
+                <input
+                    type="text"
+                    name="identification_number"
+                    id="id_identification_number"
+                    placeholder="Identification card or National ID card number"
+                    value="{{ form.identification_number.value|default:'' }}"
+                    autocomplete="off"
+                >
+                {% if form.identification_number.errors %}
+                    <p class="auth-field__error">{{ form.identification_number.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="auth-field">
+                <select name="role" id="id_role" autocomplete="off">
+                    {% for value, label in form.role.field.choices %}
+                        <option value="{{ value }}" {% if form.role.value == value %}selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                {% if form.role.errors %}
+                    <p class="auth-field__error">{{ form.role.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="auth-field auth-field--password">
+                <input
+                    type="password"
+                    name="password1"
+                    id="id_password1"
+                    placeholder="Password"
+                    autocomplete="new-password"
+                >
+                <button type="button" class="auth-field__eye" onclick="togglePassword('id_password1', this)" aria-label="Show password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                {% if form.password1.errors %}
+                    <p class="auth-field__error">{{ form.password1.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <div class="auth-field auth-field--password">
+                <input
+                    type="password"
+                    name="password2"
+                    id="id_password2"
+                    placeholder="Confirm password"
+                    autocomplete="new-password"
+                >
+                <button type="button" class="auth-field__eye" onclick="togglePassword('id_password2', this)" aria-label="Show password">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+                {% if form.password2.errors %}
+                    <p class="auth-field__error">{{ form.password2.errors|join:", " }}</p>
+                {% endif %}
+            </div>
+
+            <button type="submit" class="auth-btn auth-btn--primary">Create account</button>
+
+            {% if form.password1.help_text %}
+                <div class="auth-help auth-help--footer">{{ form.password1.help_text|safe }}</div>
+            {% endif %}
+        </form>
+
+        <p class="auth-switch">
+            Already have an account? <a href="{% url 'login' %}">Sign in</a>
+        </p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function togglePassword(fieldId, btn) {
+    const input = document.getElementById(fieldId);
+    const isHidden = input.type === "password";
+    input.type = isHidden ? "text" : "password";
+    btn.querySelector("svg").style.opacity = isHidden ? "1" : "0.4";
+}
+</script>
+{% endblock %}

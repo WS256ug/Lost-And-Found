@@ -1,0 +1,122 @@
+{% extends "dashboard/base.html" %}
+
+{% block dashboard_title %}Dashboard Overview{% endblock %}
+{% block admin_page_title %}Admin Dashboard{% endblock %}
+
+{% block dashboard_content %}
+<section class="admin-stat-grid">
+    <article class="admin-stat">
+        <p class="admin-stat__label">Total items</p>
+        <p class="admin-stat__value">{{ total_items }}</p>
+    </article>
+    <article class="admin-stat">
+        <p class="admin-stat__label">Lost reports</p>
+        <p class="admin-stat__value">{{ lost_items }}</p>
+    </article>
+    <article class="admin-stat">
+        <p class="admin-stat__label">Found reports</p>
+        <p class="admin-stat__value">{{ found_items }}</p>
+    </article>
+    <article class="admin-stat">
+        <p class="admin-stat__label">Claimed items</p>
+        <p class="admin-stat__value">{{ claimed_items }}</p>
+    </article>
+    <article class="admin-stat">
+        <p class="admin-stat__label">Returned items</p>
+        <p class="admin-stat__value">{{ returned_items }}</p>
+    </article>
+    <article class="admin-stat">
+        <p class="admin-stat__label">Registered users</p>
+        <p class="admin-stat__value">{{ total_users }}</p>
+        <p class="admin-stat__meta">{{ staff_users }} staff, {{ student_profiles }} students</p>
+    </article>
+</section>
+
+<section class="admin-grid">
+    <div class="panel admin-table-panel">
+        <div class="admin-panel__head">
+            <div>
+                <h2 class="admin-panel__title">Recent items</h2>
+                <p class="admin-panel__text">Latest lost and found reports across the platform.</p>
+            </div>
+            <a href="{% url 'admin_item_list' %}" class="admin-link">Manage all items</a>
+        </div>
+
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>Item</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                        <th>Reporter</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for item in recent_items %}
+                        <tr>
+                            <td>
+                                <div class="admin-item-cell">
+                                    {% if item.image %}
+                                        <img src="{{ item.image.url }}" alt="{{ item.title }}" class="admin-thumb">
+                                    {% else %}
+                                        <div class="admin-thumb admin-thumb--placeholder">{{ item.title|first|upper }}</div>
+                                    {% endif %}
+                                    <div>
+                                        <p class="admin-item-cell__title">{{ item.title }}</p>
+                                        <p class="admin-item-cell__meta">{{ item.location }} &middot; {{ item.event_date }}</p>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="admin-badge admin-badge--muted">{{ item.get_report_type_display }}</span></td>
+                            <td><span class="admin-badge {% if item.status == 'returned' %}admin-badge--success{% elif item.status == 'claimed' %}admin-badge--warning{% else %}admin-badge--muted{% endif %}">{{ item.get_status_display }}</span></td>
+                            <td>{{ item.reported_by.username }}</td>
+                            <td><a href="{% url 'admin_item_edit' item.pk %}" class="admin-link">Edit</a></td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5">
+                                <div class="admin-empty">No item reports available yet.</div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="panel admin-table-panel">
+        <div class="admin-panel__head">
+            <div>
+                <h2 class="admin-panel__title">Newest users</h2>
+                <p class="admin-panel__text">Quick overview of recent account activity.</p>
+            </div>
+            <a href="{% url 'admin_user_list' %}" class="admin-link">Manage all users</a>
+        </div>
+
+        <div class="admin-list">
+            {% for row in recent_user_rows %}
+                <article class="admin-user-card">
+                    <div class="admin-user-card__avatar">{{ row.user.username|first|upper }}</div>
+                    <div class="admin-user-card__body">
+                        <p class="admin-user-card__name">{{ row.user.username }}</p>
+                        <p class="admin-user-card__meta">{{ row.user.email|default:"No email address" }}</p>
+                        <p class="admin-user-card__meta">
+                            {% if row.profile %}
+                                {{ row.profile.get_role_display }}
+                            {% else %}
+                                No profile details yet
+                            {% endif %}
+                            {% if row.user.is_staff %} &middot; Staff access{% endif %}
+                        </p>
+                    </div>
+                    <a href="{% url 'admin_user_edit' row.user.pk %}" class="admin-link">Edit</a>
+                </article>
+            {% empty %}
+                <div class="admin-empty">No users have registered yet.</div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock %}

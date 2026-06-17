@@ -4,19 +4,29 @@ from urllib.parse import parse_qsl, unquote, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-26z046ai=)+)e7g)x=wp!bgn#rra(2p2*oncx#+wkeb!d#iir_'
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-26z046ai=)+)e7g)x=wp!bgn#rra(2p2*oncx#+wkeb!d#iir_",
+)
 
-DEBUG = True
-
-import os
+DEBUG = os.environ.get("DJANGO_DEBUG", "0" if os.environ.get("VERCEL") else "1") == "1"
 
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get(
         "DJANGO_ALLOWED_HOSTS",
-        "lost-and-found-ws-teams.vercel.app,.vercel.app,127.0.0.1,localhost,10.0.2.2,10.10.6.122,192.168.1.54"
+        "lost-and-found-murex-kappa.vercel.app,lost-and-found-ws-teams.vercel.app,.vercel.app,127.0.0.1,localhost,10.0.2.2,10.10.6.122,192.168.1.54"
     ).split(",")
     if host.strip()
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    origin.strip()
+    for origin in os.environ.get(
+        "DJANGO_CSRF_TRUSTED_ORIGINS",
+        "https://lost-and-found-murex-kappa.vercel.app,https://lost-and-found-ws-teams.vercel.app,https://*.vercel.app",
+    ).split(",")
+    if origin.strip()
 ]
 
 INSTALLED_APPS = [
@@ -90,7 +100,11 @@ def database_from_url(url):
     raise ValueError(f"Unsupported DATABASE_URL scheme: {parsed.scheme}")
 
 
-DATABASE_URL = os.environ.get("DATABASE_URL")
+DATABASE_URL = (
+    os.environ.get("DATABASE_URL")
+    or os.environ.get("POSTGRES_URL")
+    or os.environ.get("POSTGRES_PRISMA_URL")
+)
 if DATABASE_URL:
     default_database = database_from_url(DATABASE_URL)
 elif os.environ.get("VERCEL"):
@@ -151,6 +165,7 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
@@ -177,6 +192,6 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5173',
     'http://localhost:8100',
     'http://127.0.0.1:8100',
+    'https://lost-and-found-murex-kappa.vercel.app',
     'https://lost-and-found-ws-teams.vercel.app',
 ]
-

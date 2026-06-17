@@ -11,6 +11,7 @@ ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get(
         "DJANGO_ALLOWED_HOSTS",
+        "lost-and-found-ws-teams.vercel.app",
         "127.0.0.1,localhost,10.0.2.2,10.10.6.122,192.168.1.54",
     ).split(",")
     if host.strip()
@@ -116,4 +117,5 @@ CORS_ALLOWED_ORIGINS = [
     'http://127.0.0.1:5173',
     'http://localhost:8100',
     'http://127.0.0.1:8100',
+    'lost-and-found-ws-teams.vercel.app'
 ]

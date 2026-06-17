@@ -7,12 +7,13 @@ SECRET_KEY = 'django-insecure-26z046ai=)+)e7g)x=wp!bgn#rra(2p2*oncx#+wkeb!d#iir_
 
 DEBUG = True
 
+import os
+
 ALLOWED_HOSTS = [
     host.strip()
     for host in os.environ.get(
         "DJANGO_ALLOWED_HOSTS",
-        "lost-and-found-ws-teams.vercel.app",
-        "127.0.0.1,localhost,10.0.2.2,10.10.6.122,192.168.1.54",
+        "lost-and-found-ws-teams.vercel.app,.vercel.app,127.0.0.1,localhost,10.0.2.2,10.10.6.122,192.168.1.54"
     ).split(",")
     if host.strip()
 ]

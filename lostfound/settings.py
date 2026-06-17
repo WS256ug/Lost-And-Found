@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from urllib.parse import parse_qsl, unquote, urlparse
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
@@ -63,22 +64,64 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'lostfound.wsgi.application'
 
-import os
+# Database
+# https://docs.djangoproject.com/en/5.2/ref/settings/#databases
+def database_from_url(url):
+    parsed = urlparse(url)
+    query = dict(parse_qsl(parsed.query))
 
-if os.environ.get("VERCEL"):
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': '/tmp/db.sqlite3',
+    if parsed.scheme in {"postgres", "postgresql"}:
+        return {
+            "ENGINE": "django.db.backends.postgresql",
+            "NAME": parsed.path.lstrip("/"),
+            "USER": unquote(parsed.username or ""),
+            "PASSWORD": unquote(parsed.password or ""),
+            "HOST": parsed.hostname or "",
+            "PORT": parsed.port or "",
+            "OPTIONS": {"sslmode": query.get("sslmode", "require")},
         }
+
+    if parsed.scheme == "sqlite":
+        return {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": parsed.path,
+        }
+
+    raise ValueError(f"Unsupported DATABASE_URL scheme: {parsed.scheme}")
+
+
+DATABASE_URL = os.environ.get("DATABASE_URL")
+if DATABASE_URL:
+    default_database = database_from_url(DATABASE_URL)
+elif os.environ.get("VERCEL"):
+    default_database = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": os.environ.get("SQLITE_PATH", "/tmp/db.sqlite3"),
     }
 else:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.sqlite3',
-            'NAME': BASE_DIR / 'db.sqlite3',
-        }
+    default_database = {
+        "ENGINE": "django.db.backends.sqlite3",
+        "NAME": BASE_DIR / "db.sqlite3",
     }
+
+DATABASES = {
+    "default": default_database
+}
+
+# if os.environ.get("VERCEL"):
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': '/tmp/db.sqlite3',
+#         }
+#     }
+# else:
+#     DATABASES = {
+#         'default': {
+#             'ENGINE': 'django.db.backends.sqlite3',
+#             'NAME': BASE_DIR / 'db.sqlite3',
+#         }
+#     }
 # DATABASES = {
 #     'default': {
 #         'ENGINE': 'django.db.backends.sqlite3',

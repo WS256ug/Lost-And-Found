@@ -3,12 +3,112 @@
 {% block title %}{{ page_title }} | Digital Lost and Found{% endblock %}
 
 {% block content %}
-<section class="panel narrow">
-    <h1>{{ page_title }}</h1>
-    <form method="post" enctype="multipart/form-data">
+<section class="panel report-panel">
+    <div class="form-page-head">
+        <p class="form-page-head__eyebrow">Item report</p>
+        <h1>{{ page_title }}</h1>
+        <p>Add clear details and a useful photo so the right person can identify the item safely.</p>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="report-form">
         {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit">{{ submit_label }}</button>
+        {{ form.non_field_errors }}
+
+        <div class="form-grid">
+            <div class="form-field form-field--full">
+                <label for="{{ form.title.id_for_label }}">Title</label>
+                {{ form.title }}
+                {% for error in form.title.errors %}<p class="admin-form-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="form-field form-field--full">
+                <label for="{{ form.description.id_for_label }}">Description</label>
+                {{ form.description }}
+                {% for error in form.description.errors %}<p class="admin-form-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.category.id_for_label }}">Category</label>
+                {{ form.category }}
+                {% for error in form.category.errors %}<p class="admin-form-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="form-field">
+                <label for="{{ form.event_date.id_for_label }}">Date</label>
+                {{ form.event_date }}
+                {% for error in form.event_date.errors %}<p class="admin-form-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="form-field form-field--full">
+                <label for="{{ form.location.id_for_label }}">Location</label>
+                {{ form.location }}
+                {% for error in form.location.errors %}<p class="admin-form-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            <div class="form-field form-field--full">
+                <label for="{{ form.image.id_for_label }}">Photo</label>
+                <div class="image-upload-row">
+                    <div class="image-preview">
+                        {% if item.image %}
+                            <img src="{{ item.image.url }}" alt="{{ item.title }}" id="imagePreview">
+                        {% else %}
+                            <img src="" alt="" id="imagePreview" hidden>
+                            <span id="imagePreviewFallback">No image selected</span>
+                        {% endif %}
+                    </div>
+                    <div>
+                        {{ form.image }}
+                        <p class="form-help">Use a clear photo. For found items, avoid showing private details that only the owner should know.</p>
+                    </div>
+                </div>
+                {% for error in form.image.errors %}<p class="admin-form-error">{{ error }}</p>{% endfor %}
+            </div>
+
+            {% if show_verification %}
+                <div class="form-field form-field--full verification-box">
+                    <h2>Verification</h2>
+                    <p>Ask something only the real owner should know. Keep the private answer hidden.</p>
+                    <label for="{{ form.verification_question.id_for_label }}">Question for claimant</label>
+                    {{ form.verification_question }}
+                    {% for error in form.verification_question.errors %}<p class="admin-form-error">{{ error }}</p>{% endfor %}
+
+                    <label for="{{ form.verification_answer.id_for_label }}">Private answer</label>
+                    {{ form.verification_answer }}
+                    {% if form.verification_answer.help_text %}
+                        <p class="form-help">{{ form.verification_answer.help_text }}</p>
+                    {% endif %}
+                    {% for error in form.verification_answer.errors %}<p class="admin-form-error">{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn-primary">{{ submit_label }}</button>
+            <a href="{% url 'item_list' %}" class="btn-secondary">Cancel</a>
+        </div>
     </form>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    const imageInput = document.getElementById("{{ form.image.id_for_label }}");
+    const imagePreview = document.getElementById("imagePreview");
+    const imagePreviewFallback = document.getElementById("imagePreviewFallback");
+
+    if (imageInput && imagePreview) {
+        imageInput.addEventListener("change", () => {
+            const file = imageInput.files && imageInput.files[0];
+            if (!file) {
+                return;
+            }
+
+            imagePreview.src = URL.createObjectURL(file);
+            imagePreview.hidden = false;
+            if (imagePreviewFallback) {
+                imagePreviewFallback.hidden = true;
+            }
+        });
+    }
+</script>
 {% endblock %}

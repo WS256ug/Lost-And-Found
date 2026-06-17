@@ -191,6 +191,7 @@ class Item(models.Model):
   - a found report starts with status `found`
 - No separate matching table is needed in MVP.
 - No complex claim verification model is needed in MVP.
+- Users contact reporters through item-based conversations.
 
 ## 4. Key Views
 
@@ -376,9 +377,8 @@ These are useful later, but should stay out of the first MVP:
 
 - automatic matching suggestions between lost and found reports
 - email or SMS notifications
-- claim request and approval workflow
 - ownership verification questions
-- live chat or real-time messaging
+- real-time messaging notifications
 - audit logs and reporting dashboards
 - QR code tagging for stored items
 - mobile app

@@ -1,0 +1,79 @@
+{% extends "base.html" %}
+{% block title %}Alerts | Digital Lost and Found{% endblock %}
+
+{% block content %}
+<section class="panel alerts-panel">
+    <div class="chat-page-head">
+        <div>
+            <h1 class="chat-page-title">Alerts</h1>
+            <p class="chat-page-text">Claim updates and review actions for your reports.</p>
+        </div>
+        {% if unread_notification_count %}
+            <form method="post" action="{% url 'mark_all_notifications_read' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn-secondary btn-inline">Mark all read</button>
+            </form>
+        {% endif %}
+    </div>
+
+    <div class="alert-list">
+        {% for notification in notifications %}
+            <article class="alert-card {% if not notification.is_read %}alert-card--unread{% endif %}">
+                <span class="alert-card__dot" aria-hidden="true"></span>
+                <div class="alert-card__body">
+                    <div class="alert-card__head">
+                        <div>
+                            <h2>{{ notification.title }}</h2>
+                            <p>
+                                {% if notification.actor %}
+                                    {{ notification.actor.username }} -
+                                {% endif %}
+                                {{ notification.get_notification_type_display }}
+                            </p>
+                        </div>
+                        <span>{{ notification.created_at|date:"M d, Y H:i" }}</span>
+                    </div>
+
+                    <p class="alert-card__message">{{ notification.message }}</p>
+
+                    {% if notification.display_item %}
+                        <p class="alert-card__item">
+                            {% if notification.viewer_can_view_item_private_details %}
+                                {{ notification.display_item.title }}
+                            {% else %}
+                                Found item
+                            {% endif %}
+                            - Posted {{ notification.display_item.created_at|date:"M d" }}
+                        </p>
+                    {% endif %}
+
+                    <div class="alert-card__actions">
+                        {% if notification.display_item %}
+                            <form method="post" action="{% url 'mark_notification_read' notification.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="open_item" value="1">
+                                <button type="submit" class="btn-primary btn-inline">Open item</button>
+                            </form>
+                        {% endif %}
+                        {% if not notification.is_read %}
+                            <form method="post" action="{% url 'mark_notification_read' notification.pk %}">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-secondary btn-inline">Mark read</button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </div>
+            </article>
+        {% empty %}
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <p>No alerts yet.</p>
+                <div class="empty-state__actions">
+                    <a href="{% url 'item_list' %}" class="btn-reset">Browse items</a>
+                    <a href="{% url 'report_found_item' %}" class="btn-reset">Report found item</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

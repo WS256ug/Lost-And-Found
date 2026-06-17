@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ item.title }} | Digital Lost and Found{% endblock %}
+{% block title %}{% if can_view_private_details %}{{ item.title }}{% else %}Found item{% endif %} | Digital Lost and Found{% endblock %}
 
 {% block content %}
 <div class="detail-layout">
@@ -10,7 +10,7 @@
         <!-- Main image -->
         <div class="detail-gallery">
             {% if item.image %}
-                <img src="{{ item.image.url }}" alt="{{ item.title }}" class="detail-gallery__main" id="mainImage">
+                <img src="{{ item.image.url }}" alt="{% if can_view_private_details %}{{ item.title }}{% else %}Found item{% endif %}" class="detail-gallery__main" id="mainImage">
             {% else %}
                 <div class="detail-gallery__placeholder">
                     <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
@@ -25,12 +25,17 @@
                 <span class="pill pill--{{ item.report_type }}">{{ item.get_report_type_display }}</span>
                 <span class="pill pill--status">{{ item.get_status_display }}</span>
             </div>
-            <h1 class="detail-title">{{ item.title }}</h1>
+            <h1 class="detail-title">{% if can_view_private_details %}{{ item.title }}{% else %}Found item{% endif %}</h1>
             <p class="detail-submitted">
-                Submitted {{ item.created_at|date:"M d, Y" }} &nbsp;·&nbsp; {{ item.get_category_display }}
+                {% if can_view_private_details %}
+                Submitted {{ item.created_at|date:"M d, Y" }} &nbsp;&middot;&nbsp; {{ item.get_category_display }}
+                {% else %}
+                Posted {{ item.created_at|date:"M d, Y" }}
+                {% endif %}
             </p>
         </div>
 
+        {% if can_view_private_details %}
         <!-- Specs table -->
         <div class="detail-section">
             <h2 class="detail-section__heading">Item details</h2>
@@ -61,6 +66,55 @@
             <h2 class="detail-section__heading">Description</h2>
             <p class="detail-desc">{{ item.description }}</p>
         </div>
+        {% endif %}
+
+        {% if claim_requests %}
+            <div class="detail-section">
+                <h2 class="detail-section__heading">Claim requests</h2>
+                <div class="claim-list">
+                    {% for request_claim in claim_requests %}
+                        <article class="claim-card">
+                            <div class="claim-card__head">
+                                <div>
+                                    <strong>{{ request_claim.claimant.username }}</strong>
+                                    <p>{{ request_claim.created_at|date:"M d, Y H:i" }}</p>
+                                    {% if request_claim.claimant.profile %}
+                                        <p>ID: {{ request_claim.claimant.profile.identification_number|default:"Not set" }}</p>
+                                        <p>Phone: {{ request_claim.claimant.profile.phone_number|default:"Not set" }}</p>
+                                    {% endif %}
+                                </div>
+                                <span class="badge badge-status">{{ request_claim.get_status_display }}</span>
+                            </div>
+                            <p class="claim-card__meta">
+                                Verification answer:
+                                {% if request_claim.answer_matches %}
+                                    matched
+                                {% elif item.has_verification_question %}
+                                    did not match
+                                {% else %}
+                                    no private question set
+                                {% endif %}
+                            </p>
+                            <p class="claim-card__body">{{ request_claim.proof_details }}</p>
+                            {% if request_claim.review_note %}
+                                <p class="claim-card__meta">Review note: {{ request_claim.review_note }}</p>
+                            {% endif %}
+                            {% if request_claim.status == "pending" %}
+                                <form method="post" class="claim-review-form">
+                                    {% csrf_token %}
+                                    <label for="review-note-{{ request_claim.pk }}">Review note</label>
+                                    <textarea id="review-note-{{ request_claim.pk }}" name="review_note" rows="2" placeholder="Optional note for the claimant"></textarea>
+                                    <div class="claim-card__actions">
+                                        <button type="submit" class="btn-primary" formaction="{% url 'review_claim' request_claim.pk 'approved' %}">Approve</button>
+                                        <button type="submit" class="btn-danger" formaction="{% url 'review_claim' request_claim.pk 'rejected' %}">Reject</button>
+                                    </div>
+                                </form>
+                            {% endif %}
+                        </article>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endif %}
 
     </div>
 
@@ -72,30 +126,39 @@
                 <span class="pill pill--{{ item.report_type }}">{{ item.get_report_type_display }}</span>
                 <span class="pill pill--status">{{ item.get_status_display }}</span>
             </div>
-            <h2 class="detail-panel__title">{{ item.title }}</h2>
-            <p class="detail-panel__meta">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
-                {{ item.location }}
-            </p>
-            <p class="detail-panel__meta">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
-                {{ item.event_date }}
-            </p>
+            <h2 class="detail-panel__title">{% if can_view_private_details %}{{ item.title }}{% else %}Found item{% endif %}</h2>
+            {% if can_view_private_details %}
+                <p class="detail-panel__meta">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                    {{ item.location }}
+                </p>
+                <p class="detail-panel__meta">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    {{ item.event_date }}
+                </p>
+            {% else %}
+                <p class="detail-panel__meta">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+                    Posted {{ item.created_at|date:"M d" }}
+                </p>
+            {% endif %}
 
             <div class="detail-panel__divider"></div>
 
-            <!-- Reporter -->
-            <div class="detail-reporter">
-                <div class="detail-reporter__avatar">
-                    {{ item.reported_by.username|slice:":1"|upper }}
+            {% if can_view_private_details %}
+                <!-- Reporter -->
+                <div class="detail-reporter">
+                    <div class="detail-reporter__avatar">
+                        {{ item.reported_by.username|slice:":1"|upper }}
+                    </div>
+                    <div>
+                        <p class="detail-reporter__name">{{ item.reported_by.username }}</p>
+                        <p class="detail-reporter__label">Reporter</p>
+                    </div>
                 </div>
-                <div>
-                    <p class="detail-reporter__name">{{ item.reported_by.username }}</p>
-                    <p class="detail-reporter__label">Reporter</p>
-                </div>
-            </div>
 
-            <div class="detail-panel__divider"></div>
+                <div class="detail-panel__divider"></div>
+            {% endif %}
 
             <!-- Actions -->
             {% if user.is_authenticated %}
@@ -108,20 +171,62 @@
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
                         Delete
                     </a>
+                    {% if reporter_conversation_count %}
+                        <a href="{% url 'conversation_list' %}" class="btn-secondary">
+                            View messages ({{ reporter_conversation_count }})
+                        </a>
+                    {% endif %}
                 {% else %}
-                    <a href="mailto:{{ item.reported_by.email }}" class="btn-primary">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
-                        Contact reporter
-                    </a>
+                    {% if claim %}
+                        <div class="detail-claim-state">
+                            <p class="detail-claim-state__label">Your claim</p>
+                            <p class="detail-claim-state__status">{{ claim.get_status_display }}</p>
+                            {% if claim.answer_matches %}
+                                <p class="detail-claim-state__text">Your verification answer matched.</p>
+                            {% elif item.has_verification_question %}
+                                <p class="detail-claim-state__text">Your verification answer did not match.</p>
+                            {% endif %}
+                            {% if claim.review_note %}
+                                <p class="detail-claim-state__text">{{ claim.review_note }}</p>
+                            {% endif %}
+                        </div>
+                    {% elif claim_form %}
+                        <form method="post" action="{% url 'submit_claim' item.pk %}" class="claim-form">
+                            {% csrf_token %}
+                            {% if item.verification_question %}
+                                <p class="claim-form__question">{{ item.verification_question }}</p>
+                                {{ claim_form.verification_answer }}
+                            {% endif %}
+                            {{ claim_form.proof_details }}
+                            <button type="submit" class="btn-primary">Submit claim</button>
+                        </form>
+                    {% endif %}
+
+                    {% if can_view_private_details %}
+                        {% if conversation %}
+                            <a href="{% url 'conversation_detail' conversation.pk %}" class="btn-primary">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+                                Open chat
+                            </a>
+                        {% else %}
+                            <form method="post" action="{% url 'start_conversation' item.pk %}" class="detail-action-form">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-primary">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+                                    Message reporter
+                                </button>
+                            </form>
+                        {% endif %}
+                    {% endif %}
                 {% endif %}
             {% else %}
                 <a href="{% url 'login' %}?next={{ request.path }}" class="btn-primary">
-                    Sign in to contact reporter
+                    Sign in to claim item
                 </a>
             {% endif %}
 
             <a href="{% url 'item_list' %}" class="btn-secondary">
-                ← Back to listings
+                &larr; Back to listings
             </a>
         </div>
 
@@ -134,7 +239,7 @@
             <ul class="detail-safety__list">
                 <li>Meet in a safe, public place on campus</li>
                 <li>Verify ownership before handing over items</li>
-                <li>Report suspicious claims to campus security</li>
+                <li>Report suspicious messages to campus security</li>
                 <li>Never share sensitive personal information</li>
             </ul>
         </div>

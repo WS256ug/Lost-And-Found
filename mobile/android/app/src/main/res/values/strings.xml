@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Digital Lost and Found</string>
+    <string name="title_activity_main">Digital Lost and Found</string>
+    <string name="package_name">com.campus.lostfound</string>
+    <string name="custom_url_scheme">com.campus.lostfound</string>
+</resources>

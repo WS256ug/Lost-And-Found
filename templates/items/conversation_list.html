@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Messages | Digital Lost and Found{% endblock %}
+
+{% block content %}
+<section class="panel chat-list-panel">
+    <div class="chat-page-head">
+        <div>
+            <h1 class="chat-page-title">Messages</h1>
+            <p class="chat-page-text">Conversations about reported lost and found items.</p>
+        </div>
+    </div>
+
+    <div class="chat-list">
+        {% for conversation in conversations %}
+            <a href="{% url 'conversation_detail' conversation.pk %}" class="chat-list-item">
+                {% if conversation.item.image %}
+                    <img src="{{ conversation.item.image.url }}" alt="{{ conversation.item.title }}" class="chat-list-item__thumb">
+                {% else %}
+                    <div class="chat-list-item__thumb chat-list-item__thumb--placeholder">{{ conversation.item.title|first|upper }}</div>
+                {% endif %}
+                <div class="chat-list-item__body">
+                    <div class="chat-list-item__top">
+                        <strong>{{ conversation.item.title }}</strong>
+                        <span>{{ conversation.updated_at|date:"M d, Y H:i" }}</span>
+                    </div>
+                    <p class="chat-list-item__meta">
+                        {% if conversation.item.reported_by == user %}
+                            With {{ conversation.participant.username }}
+                        {% else %}
+                            With {{ conversation.item.reported_by.username }}
+                        {% endif %}
+                    </p>
+                    {% with last_message=conversation.messages.last %}
+                        <p class="chat-list-item__preview">
+                            {% if last_message %}
+                                {{ last_message.sender.username }}: {{ last_message.body|truncatechars:90 }}
+                            {% else %}
+                                No messages yet.
+                            {% endif %}
+                        </p>
+                    {% endwith %}
+                </div>
+            </a>
+        {% empty %}
+            <div class="empty-state">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2"><path d="M21 15a4 4 0 0 1-4 4H8l-5 3V7a4 4 0 0 1 4-4h10a4 4 0 0 1 4 4z"/></svg>
+                <p>No conversations yet.</p>
+                <div class="empty-state__actions">
+                    <a href="{% url 'item_list' %}" class="btn-reset">Browse items</a>
+                    <a href="{% url 'report_lost_item' %}" class="btn-reset">Report lost item</a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+</section>
+{% endblock %}

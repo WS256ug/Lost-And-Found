@@ -3,3 +3,9 @@ __pycache__/
 *.pyc
 db.sqlite3
 media/item_images/
+mobile/node_modules/
+mobile/dist/
+mobile/.vite/
+mobile/android/.gradle/
+mobile/android/app/build/
+mobile/android/build/

@@ -18,18 +18,62 @@
         <p class="admin-stat__value">{{ found_items }}</p>
     </article>
     <article class="admin-stat">
-        <p class="admin-stat__label">Claimed items</p>
-        <p class="admin-stat__value">{{ claimed_items }}</p>
-    </article>
-    <article class="admin-stat">
-        <p class="admin-stat__label">Returned items</p>
-        <p class="admin-stat__value">{{ returned_items }}</p>
-    </article>
-    <article class="admin-stat">
         <p class="admin-stat__label">Registered users</p>
         <p class="admin-stat__value">{{ total_users }}</p>
         <p class="admin-stat__meta">{{ staff_users }} staff, {{ student_profiles }} students</p>
     </article>
+</section>
+
+<section class="panel admin-table-panel">
+    <div class="admin-panel__head">
+        <div>
+            <h2 class="admin-panel__title">Recent conversations</h2>
+            <p class="admin-panel__text">Latest item-related chats between reporters and users.</p>
+        </div>
+    </div>
+
+    <div class="admin-table-wrap">
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Item</th>
+                    <th>Reporter</th>
+                    <th>Participant</th>
+                    <th>Updated</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for conversation in recent_conversations %}
+                    <tr>
+                        <td>
+                            <div class="admin-item-cell">
+                                {% if conversation.item.image %}
+                                    <img src="{{ conversation.item.image.url }}" alt="{{ conversation.item.title }}" class="admin-thumb">
+                                {% else %}
+                                    <div class="admin-thumb admin-thumb--placeholder">{{ conversation.item.title|first|upper }}</div>
+                                {% endif %}
+                                <div>
+                                    <p class="admin-item-cell__title">{{ conversation.item.title }}</p>
+                                    <p class="admin-item-cell__meta">{{ conversation.item.location }} &middot; {{ conversation.item.get_status_display }}</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td>{{ conversation.item.reported_by.username }}</td>
+                        <td>{{ conversation.participant.username }}</td>
+                        <td>{{ conversation.updated_at|date:"M d, Y H:i" }}</td>
+                        <td><a href="{% url 'conversation_detail' conversation.pk %}" class="admin-link">Open</a></td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="5">
+                            <div class="admin-empty">No conversations yet.</div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 </section>
 
 <section class="admin-grid">

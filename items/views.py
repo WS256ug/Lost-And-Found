@@ -3,14 +3,17 @@ from functools import wraps
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
+from django.views.decorators.http import require_POST
 
 from accounts.forms import AdminProfileForm, AdminUserForm
 from accounts.models import Profile
 
-from .forms import AdminItemForm, ItemForm
-from .models import Item
+from .forms import AdminItemForm, ClaimForm, ItemForm, MessageForm
+from .models import Claim, Conversation, Item, Message, Notification
+from .notifications import notify_claim_reviewed, notify_claim_submitted
 
 
 def staff_required(view_func):
@@ -43,25 +46,56 @@ def _get_or_create_profile(user):
     )
 
 
+def _visible_items_for_user(user):
+    items = Item.objects.select_related("reported_by")
+
+    if not user.is_authenticated:
+        return items.filter(report_type=Item.ReportType.FOUND)
+
+    if user.is_staff:
+        return items
+
+    return items.filter(
+        Q(report_type=Item.ReportType.FOUND)
+        | Q(reported_by=user)
+        | Q(conversations__participant=user)
+        | Q(claims__claimant=user)
+    ).distinct()
+
+
 def item_list(request):
     query = request.GET.get("q", "").strip()
     status = request.GET.get("status", "").strip()
     category = request.GET.get("category", "").strip()
+    can_filter_private_details = request.user.is_authenticated and request.user.is_staff
 
-    items = Item.objects.select_related("reported_by")
+    items = _visible_items_for_user(request.user)
 
-    if query:
+    if query and can_filter_private_details:
         items = items.filter(
             Q(title__icontains=query)
             | Q(description__icontains=query)
             | Q(location__icontains=query)
         )
 
-    if status:
+    if status and can_filter_private_details:
         items = items.filter(status=status)
 
-    if category:
+    if category and can_filter_private_details:
         items = items.filter(category=category)
+
+    items = items.annotate(
+        pending_claim_count=Count(
+            "claims",
+            filter=Q(claims__status=Claim.Status.PENDING),
+            distinct=True,
+        )
+    )
+    items = list(items)
+    for item in items:
+        item.viewer_can_view_private_details = item.can_user_view_private_details(
+            request.user
+        )
 
     context = {
         "items": items,
@@ -70,13 +104,356 @@ def item_list(request):
         "selected_category": category,
         "status_choices": Item.Status.choices,
         "category_choices": Item.Category.choices,
+        "can_filter_private_details": can_filter_private_details,
     }
     return render(request, "items/item_list.html", context)
 
 
+@login_required
+def notification_list(request):
+    notifications = list(
+        Notification.objects.filter(recipient=request.user)
+        .select_related(
+            "actor",
+            "item",
+            "item__reported_by",
+            "claim",
+            "claim__item",
+            "claim__item__reported_by",
+            "claim__claimant",
+        )[:60]
+    )
+
+    for notification in notifications:
+        item = notification.item or (
+            notification.claim.item if notification.claim else None
+        )
+        notification.display_item = item
+        notification.viewer_can_view_item_private_details = bool(
+            item and item.can_user_view_private_details(request.user)
+        )
+
+    return render(
+        request,
+        "items/notification_list.html",
+        {"notifications": notifications},
+    )
+
+
+@login_required
+@require_POST
+def mark_notification_read(request, pk):
+    notification = get_object_or_404(
+        Notification,
+        pk=pk,
+        recipient=request.user,
+    )
+    notification.mark_read()
+
+    if request.POST.get("open_item") == "1":
+        item = notification.item or (
+            notification.claim.item if notification.claim else None
+        )
+        if item is not None:
+            return redirect("item_detail", pk=item.pk)
+
+    return redirect("notification_list")
+
+
+@login_required
+@require_POST
+def mark_all_notifications_read(request):
+    Notification.objects.filter(recipient=request.user, is_read=False).update(
+        is_read=True,
+        read_at=timezone.now(),
+    )
+    messages.success(request, "All alerts marked as read.")
+    return redirect("notification_list")
+
+
 def item_detail(request, pk):
+    item = get_object_or_404(_visible_items_for_user(request.user), pk=pk)
+    can_view_private_details = item.can_user_view_private_details(request.user)
+    conversation = None
+    reporter_conversation_count = 0
+    claim = None
+    claim_form = None
+    claim_requests = []
+    if (
+        request.user.is_authenticated
+        and item.reported_by != request.user
+        and not request.user.is_staff
+    ):
+        conversation = item.conversations.filter(participant=request.user).first()
+        claim = item.claims.filter(claimant=request.user).first()
+        if item.report_type == Item.ReportType.FOUND and claim is None:
+            claim_form = ClaimForm()
+    elif request.user.is_authenticated and item.reported_by == request.user:
+        reporter_conversation_count = item.conversations.count()
+        claim_requests = item.claims.select_related(
+            "claimant",
+            "claimant__profile",
+            "reviewed_by",
+        )
+
+    if request.user.is_authenticated and request.user.is_staff:
+        claim_requests = item.claims.select_related(
+            "claimant",
+            "claimant__profile",
+            "reviewed_by",
+        )
+
+    return render(
+        request,
+        "items/item_detail.html",
+        {
+            "item": item,
+            "conversation": conversation,
+            "reporter_conversation_count": reporter_conversation_count,
+            "claim": claim,
+            "claim_form": claim_form,
+            "claim_requests": claim_requests,
+            "can_view_private_details": can_view_private_details,
+        },
+    )
+
+
+@login_required
+@require_POST
+def start_conversation(request, pk):
+    item = get_object_or_404(_visible_items_for_user(request.user), pk=pk)
+
+    if item.reported_by == request.user:
+        messages.info(request, "Use Messages to reply to people about your item.")
+        return redirect("conversation_list")
+
+    if (
+        item.report_type == Item.ReportType.FOUND
+        and not item.can_user_view_private_details(request.user)
+    ):
+        messages.info(request, "Submit a claim to contact the reporter about this found item.")
+        return redirect("item_detail", pk=item.pk)
+
+    conversation, _ = Conversation.objects.get_or_create(
+        item=item,
+        participant=request.user,
+    )
+    return redirect("conversation_detail", pk=conversation.pk)
+
+
+@login_required
+@require_POST
+def submit_claim(request, pk):
+    item = get_object_or_404(_visible_items_for_user(request.user), pk=pk)
+
+    if item.report_type != Item.ReportType.FOUND:
+        messages.error(request, "Only found items can be claimed.")
+        return redirect("item_detail", pk=item.pk)
+
+    if item.reported_by == request.user:
+        messages.info(request, "You cannot claim an item you reported.")
+        return redirect("item_detail", pk=item.pk)
+
+    if item.status in (Item.Status.CLAIMED, Item.Status.RETURNED):
+        messages.error(request, "This item is no longer available to claim.")
+        return redirect("item_detail", pk=item.pk)
+
+    if item.claims.filter(claimant=request.user).exists():
+        messages.info(request, "You already submitted a claim for this item.")
+        return redirect("item_detail", pk=item.pk)
+
+    form = ClaimForm(request.POST)
+    if form.is_valid():
+        verification_answer = form.cleaned_data.get("verification_answer", "")
+        claim = Claim.objects.create(
+            item=item,
+            claimant=request.user,
+            proof_details=form.cleaned_data["proof_details"],
+            answer_matches=item.check_verification_answer(verification_answer),
+        )
+        notify_claim_submitted(claim, request.user)
+        messages.success(request, "Claim submitted. The reporter or staff will review it.")
+    else:
+        messages.error(request, "Please add the ownership details required for your claim.")
+
+    return redirect("item_detail", pk=item.pk)
+
+
+@login_required
+@require_POST
+def review_claim(request, pk, decision):
+    claim = get_object_or_404(
+        Claim.objects.select_related("item", "item__reported_by", "claimant"),
+        pk=pk,
+    )
+
+    if not request.user.is_staff and claim.item.reported_by != request.user:
+        messages.error(request, "Only the reporter or staff can review this claim.")
+        return redirect("item_detail", pk=claim.item.pk)
+
+    if decision not in (Claim.Status.APPROVED, Claim.Status.REJECTED):
+        messages.error(request, "Unknown claim decision.")
+        return redirect("item_detail", pk=claim.item.pk)
+
+    claim.review(
+        reviewer=request.user,
+        next_status=decision,
+        note=request.POST.get("review_note", "").strip(),
+    )
+    claim.save(
+        update_fields=[
+            "status",
+            "reviewed_by",
+            "reviewed_at",
+            "review_note",
+            "updated_at",
+        ]
+    )
+    notify_claim_reviewed(claim, request.user)
+
+    if decision == Claim.Status.APPROVED:
+        item = claim.item
+        item.status = Item.Status.CLAIMED
+        item.save(update_fields=["status", "updated_at"])
+        other_pending_claims = list(
+            Claim.objects.filter(
+                item=item,
+                status=Claim.Status.PENDING,
+            )
+            .exclude(pk=claim.pk)
+            .select_related("item", "item__reported_by", "claimant")
+        )
+        Claim.objects.filter(
+            item=item,
+            status=Claim.Status.PENDING,
+        ).exclude(pk=claim.pk).update(
+            status=Claim.Status.REJECTED,
+            reviewed_by=request.user,
+            reviewed_at=claim.reviewed_at,
+            review_note="Another claim was approved.",
+        )
+        for other_claim in other_pending_claims:
+            other_claim.status = Claim.Status.REJECTED
+            other_claim.reviewed_by = request.user
+            other_claim.reviewed_at = claim.reviewed_at
+            other_claim.review_note = "Another claim was approved."
+            notify_claim_reviewed(other_claim, request.user, auto_rejected=True)
+        messages.success(request, "Claim approved and item marked as claimed.")
+    else:
+        messages.success(request, "Claim rejected.")
+
+    return redirect("item_detail", pk=claim.item.pk)
+
+
+@login_required
+def conversation_list(request):
+    conversations = (
+        Conversation.objects.filter(
+            Q(participant=request.user) | Q(item__reported_by=request.user)
+        )
+        .select_related("item", "item__reported_by", "participant")
+        .prefetch_related("messages")
+    )
+
+    return render(
+        request,
+        "items/conversation_list.html",
+        {"conversations": conversations},
+    )
+
+
+def _user_can_access_conversation(user, conversation):
+    return (
+        user.is_staff
+        or conversation.participant_id == user.id
+        or conversation.item.reported_by_id == user.id
+    )
+
+
+@login_required
+def conversation_detail(request, pk):
+    conversation = get_object_or_404(
+        Conversation.objects.select_related("item", "item__reported_by", "participant"),
+        pk=pk,
+    )
+    if not _user_can_access_conversation(request.user, conversation):
+        messages.error(request, "You do not have access to that conversation.")
+        return redirect("conversation_list")
+
+    if request.method == "POST":
+        form = MessageForm(request.POST)
+        if form.is_valid():
+            Message.objects.create(
+                conversation=conversation,
+                sender=request.user,
+                body=form.cleaned_data["body"],
+            )
+            conversation.save(update_fields=["updated_at"])
+            return redirect("conversation_detail", pk=conversation.pk)
+    else:
+        form = MessageForm()
+
+    other_user = (
+        conversation.participant
+        if conversation.item.reported_by == request.user
+        else conversation.item.reported_by
+    )
+    chat_messages = conversation.messages.select_related("sender")
+
+    return render(
+        request,
+        "items/conversation_detail.html",
+        {
+            "conversation": conversation,
+            "chat_messages": chat_messages,
+            "form": form,
+            "other_user": other_user,
+        },
+    )
+
+
+@login_required
+def item_edit(request, pk):
     item = get_object_or_404(Item.objects.select_related("reported_by"), pk=pk)
-    return render(request, "items/item_detail.html", {"item": item})
+    if item.reported_by != request.user:
+        messages.error(request, "You can only edit items you reported.")
+        return redirect("item_list")
+
+    if request.method == "POST":
+        form = ItemForm(request.POST, request.FILES, instance=item)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Item updated successfully.")
+            return redirect("item_detail", pk=item.pk)
+    else:
+        form = ItemForm(instance=item)
+
+    return render(
+        request,
+        "items/item_form.html",
+        {
+            "form": form,
+            "item": item,
+            "page_title": "Edit Item",
+            "submit_label": "Save Changes",
+            "show_verification": item.report_type == Item.ReportType.FOUND,
+        },
+    )
+
+
+@login_required
+def item_delete(request, pk):
+    item = get_object_or_404(Item.objects.select_related("reported_by"), pk=pk)
+    if item.reported_by != request.user:
+        messages.error(request, "You can only delete items you reported.")
+        return redirect("item_list")
+
+    if request.method == "POST":
+        item.delete()
+        messages.success(request, "Item deleted successfully.")
+        return redirect("item_list")
+
+    return render(request, "items/item_confirm_delete.html", {"item": item})
 
 
 @login_required
@@ -112,6 +489,7 @@ def _save_item_report(request, report_type, status):
             "form": form,
             "page_title": f"Report {label} Item",
             "submit_label": f"Save {label} Report",
+            "show_verification": report_type == Item.ReportType.FOUND,
         },
     )
 
@@ -120,6 +498,11 @@ def _save_item_report(request, report_type, status):
 def admin_dashboard(request):
     recent_items = Item.objects.select_related("reported_by")[:6]
     recent_users = User.objects.order_by("-date_joined")[:6]
+    recent_conversations = Conversation.objects.select_related(
+        "item",
+        "item__reported_by",
+        "participant",
+    )[:6]
     recent_user_rows = [
         {
             "user": user,
@@ -133,12 +516,11 @@ def admin_dashboard(request):
         "total_items": Item.objects.count(),
         "lost_items": Item.objects.filter(report_type=Item.ReportType.LOST).count(),
         "found_items": Item.objects.filter(report_type=Item.ReportType.FOUND).count(),
-        "claimed_items": Item.objects.filter(status=Item.Status.CLAIMED).count(),
-        "returned_items": Item.objects.filter(status=Item.Status.RETURNED).count(),
         "total_users": User.objects.count(),
         "staff_users": User.objects.filter(is_staff=True).count(),
         "student_profiles": Profile.objects.filter(role=Profile.Role.STUDENT).count(),
         "recent_items": recent_items,
+        "recent_conversations": recent_conversations,
         "recent_user_rows": recent_user_rows,
     }
     return render(request, "dashboard/overview.html", context)

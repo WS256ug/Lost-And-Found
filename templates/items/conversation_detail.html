@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Chat about {{ conversation.item.title }} | Digital Lost and Found{% endblock %}
+
+{% block content %}
+<section class="chat-layout">
+    <div class="panel chat-thread">
+        <div class="chat-thread__head">
+            <div>
+                <p class="chat-page-text">Chat with {{ other_user.username }}</p>
+                <h1 class="chat-page-title">{{ conversation.item.title }}</h1>
+            </div>
+            <a href="{% url 'item_detail' conversation.item.pk %}" class="admin-link">Open item</a>
+        </div>
+
+        <div class="chat-messages">
+            {% for message in chat_messages %}
+                <article class="chat-message {% if message.sender == user %}chat-message--mine{% endif %}">
+                    <p class="chat-message__meta">{{ message.sender.username }} &middot; {{ message.created_at|date:"M d, Y H:i" }}</p>
+                    <p class="chat-message__body">{{ message.body }}</p>
+                </article>
+            {% empty %}
+                <div class="admin-empty">No messages yet. Send the first message below.</div>
+            {% endfor %}
+        </div>
+
+        <form method="post" class="chat-form">
+            {% csrf_token %}
+            {{ form.body }}
+            {% for error in form.body.errors %}
+                <p class="admin-form-error">{{ error }}</p>
+            {% endfor %}
+            <button type="submit">Send message</button>
+        </form>
+    </div>
+
+    <aside class="panel chat-item-panel">
+        {% if conversation.item.image %}
+            <img src="{{ conversation.item.image.url }}" alt="{{ conversation.item.title }}" class="chat-item-panel__image">
+        {% endif %}
+        <span class="badge badge-{{ conversation.item.report_type }}">{{ conversation.item.get_report_type_display }}</span>
+        <h2>{{ conversation.item.title }}</h2>
+        <p>{{ conversation.item.location }} &middot; {{ conversation.item.event_date }}</p>
+        <p>Reported by {{ conversation.item.reported_by.username }}</p>
+    </aside>
+</section>
+{% endblock %}

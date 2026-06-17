@@ -16,6 +16,13 @@
                 <a href="{% url 'report_lost_item' %}">Report Lost</a>
                 <a href="{% url 'report_found_item' %}">Report Found</a>
                 {% if user.is_authenticated %}
+                    <a href="{% url 'notification_list' %}">
+                        Alerts
+                        {% if unread_notification_count %}
+                            <span class="nav-count">{{ unread_notification_count }}</span>
+                        {% endif %}
+                    </a>
+                    <a href="{% url 'conversation_list' %}">Messages</a>
                     {% if user.is_staff %}
                         <a href="{% url 'admin_dashboard' %}">Dashboard</a>
                     {% endif %}

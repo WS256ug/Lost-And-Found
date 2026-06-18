@@ -14,25 +14,24 @@ import type {
   RegisterPayload
 } from "./types";
 
-const configuredApiUrl = import.meta.env.VITE_API_URL as string | undefined;
-const API_URLS = [
-  configuredApiUrl,
-  ...(Capacitor.isNativePlatform()
-    ? [
-      "https://lost-and-found-murex-kappa.vercel.app/api",
-      "http://127.0.0.1:8000/api",
-      "http://10.0.2.2:8000/api",
-      "http://10.10.6.122:8000/api",
-      "http://192.168.1.54:8000/api"
-    ]
-    : ["/api"])
-].filter((url, index, urls): url is string => Boolean(url) && urls.indexOf(url) === index);
+const configuredApiUrl = (import.meta.env.VITE_API_URL as string | undefined)
+  ?.trim()
+  .replace(/\/+$/, "");
+const defaultApiUrl = Capacitor.isNativePlatform()
+  ? "https://lost-and-found-murex-kappa.vercel.app/api"
+  : "/api";
+const API_URLS = (
+  configuredApiUrl
+    ? [configuredApiUrl]
+    : [defaultApiUrl]
+).filter((url, index, urls): url is string => Boolean(url) && urls.indexOf(url) === index);
 
 let activeApiUrl = API_URLS[0];
 const REQUEST_TIMEOUT_MS = 6000;
 
 const ACCESS_KEY = "lostfound.access";
 const REFRESH_KEY = "lostfound.refresh";
+const TOKEN_API_URL_KEY = "lostfound.tokenApiUrl";
 
 type RequestOptions = RequestInit & {
   retry?: boolean;
@@ -41,7 +40,9 @@ type RequestOptions = RequestInit & {
 export function getStoredTokens(): AuthTokens | null {
   const access = localStorage.getItem(ACCESS_KEY);
   const refresh = localStorage.getItem(REFRESH_KEY);
-  if (!access || !refresh) {
+  const tokenApiUrl = localStorage.getItem(TOKEN_API_URL_KEY);
+  if (!access || !refresh || tokenApiUrl !== activeApiUrl) {
+    clearTokens();
     return null;
   }
   return { access, refresh };
@@ -50,11 +51,13 @@ export function getStoredTokens(): AuthTokens | null {
 export function storeTokens(tokens: AuthTokens) {
   localStorage.setItem(ACCESS_KEY, tokens.access);
   localStorage.setItem(REFRESH_KEY, tokens.refresh);
+  localStorage.setItem(TOKEN_API_URL_KEY, activeApiUrl);
 }
 
 export function clearTokens() {
   localStorage.removeItem(ACCESS_KEY);
   localStorage.removeItem(REFRESH_KEY);
+  localStorage.removeItem(TOKEN_API_URL_KEY);
 }
 
 function isFormData(body: BodyInit | null | undefined): body is FormData {

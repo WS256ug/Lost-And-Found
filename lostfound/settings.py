@@ -2,6 +2,8 @@ import os
 from pathlib import Path
 from urllib.parse import parse_qsl, unquote, urlparse
 
+from django.core.exceptions import ImproperlyConfigured
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get(
@@ -29,6 +31,16 @@ CSRF_TRUSTED_ORIGINS = [
     if origin.strip()
 ]
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+CANONICAL_HOST = os.environ.get(
+    "DJANGO_CANONICAL_HOST",
+    "lost-and-found-murex-kappa.vercel.app" if os.environ.get("VERCEL") else "",
+)
+CANONICAL_SCHEME = os.environ.get(
+    "DJANGO_CANONICAL_SCHEME",
+    "https" if os.environ.get("VERCEL") else "",
+)
+
 INSTALLED_APPS = [
     'corsheaders',
     'django.contrib.admin',
@@ -45,6 +57,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'lostfound.middleware.CanonicalHostMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -104,15 +117,23 @@ def database_from_url(url):
 DATABASE_URL = (
     os.environ.get("DATABASE_URL")
     or os.environ.get("POSTGRES_URL")
+    or os.environ.get("DATABASE_URL_UNPOOLED")
+    or os.environ.get("POSTGRES_URL_NON_POOLING")
     or os.environ.get("POSTGRES_PRISMA_URL")
 )
 if DATABASE_URL:
     default_database = database_from_url(DATABASE_URL)
 elif os.environ.get("VERCEL"):
-    default_database = {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": os.environ.get("SQLITE_PATH", "/tmp/db.sqlite3"),
-    }
+    if os.environ.get("ALLOW_VERCEL_SQLITE") == "1":
+        default_database = {
+            "ENGINE": "django.db.backends.sqlite3",
+            "NAME": os.environ.get("SQLITE_PATH", "/tmp/db.sqlite3"),
+        }
+    else:
+        raise ImproperlyConfigured(
+            "No Neon/Postgres database URL found. Connect Neon to this Vercel "
+            "project so DATABASE_URL or POSTGRES_URL is available."
+        )
 else:
     default_database = {
         "ENGINE": "django.db.backends.sqlite3",

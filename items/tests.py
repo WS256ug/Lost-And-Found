@@ -65,11 +65,48 @@ class ItemViewsTests(TestCase):
         response = self.client.get(reverse("item_list"))
 
         self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'name="q"')
+        self.assertContains(response, 'name="type"')
+        self.assertContains(response, 'name="status"')
+        self.assertContains(response, 'name="category"')
         self.assertContains(response, "Found item")
         self.assertContains(response, "Posted")
         self.assertNotContains(response, "Found Phone")
         self.assertNotContains(response, "Cafeteria")
         self.assertNotContains(response, "Lost Laptop")
+
+    def test_regular_user_can_search_and_filter_item_list(self):
+        viewer = User.objects.create_user(
+            username="viewer1",
+            password="StrongPass123",
+        )
+        book = Item.objects.create(
+            report_type=Item.ReportType.FOUND,
+            title="Found Statistics Book",
+            description="Blue statistics textbook.",
+            category=Item.Category.BOOKS,
+            location="Library second floor",
+            event_date="2026-06-15",
+            status=Item.Status.FOUND,
+            reported_by=self.user,
+        )
+        self.client.login(username="viewer1", password="StrongPass123")
+
+        response = self.client.get(
+            reverse("item_list"),
+            {
+                "q": "statistics",
+                "type": Item.ReportType.FOUND,
+                "status": Item.Status.FOUND,
+                "category": Item.Category.BOOKS,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual([item.pk for item in response.context["items"]], [book.pk])
+        self.assertContains(response, "Found item")
+        self.assertNotContains(response, "Found Statistics Book")
+        self.assertNotContains(response, "Library second floor")
 
     def test_report_lost_item_requires_login(self):
         response = self.client.get(reverse("report_lost_item"))

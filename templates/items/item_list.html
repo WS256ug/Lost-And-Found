@@ -9,26 +9,30 @@
     </div>
 </section>
 
-{% if can_filter_private_details %}
-    <section class="panel">
-        <form method="get" class="filters">
-            <input type="text" name="q" value="{{ query }}" placeholder="Search by title, category, or location">
-            <select name="status">
-                <option value="">All statuses</option>
-                {% for value, label in status_choices %}
-                    <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-            <select name="category">
-                <option value="">All categories</option>
-                {% for value, label in category_choices %}
-                    <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
-                {% endfor %}
-            </select>
-            <button type="submit">Search</button>
-        </form>
-    </section>
-{% endif %}
+<section class="panel">
+    <form method="get" class="filters">
+        <input type="text" name="q" value="{{ query }}" placeholder="Search listings">
+        <select name="type">
+            <option value="">All reports</option>
+            {% for value, label in report_type_choices %}
+                <option value="{{ value }}" {% if selected_report_type == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="status">
+            <option value="">All statuses</option>
+            {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if selected_status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <select name="category">
+            <option value="">All categories</option>
+            {% for value, label in category_choices %}
+                <option value="{{ value }}" {% if selected_category == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        <button type="submit">Search</button>
+    </form>
+</section>
 
 <div class="listing-header">
     <p class="listing-count">{{ items|length }} listing{{ items|length|pluralize }} shown</p>

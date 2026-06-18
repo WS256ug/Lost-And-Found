@@ -522,42 +522,39 @@ export default function App() {
             <IonIcon icon={searchOutline} aria-hidden="true" />
             <input
               value={filters.q}
-              placeholder={user?.is_staff ? "Search title, description, or location" : "Found items"}
+              placeholder="Search listings"
               onChange={(event) => setFilters({ ...filters, q: event.target.value })}
-              disabled={!user?.is_staff}
             />
           </label>
 
-          {user?.is_staff && (
-            <div className="filter-grid">
-              <select
-                value={filters.report_type}
-                onChange={(event) => setFilters({ ...filters, report_type: event.target.value })}
-              >
-                <option value="">All reports</option>
-                <option value="lost">Lost</option>
-                <option value="found">Found</option>
-              </select>
-              <select
-                value={filters.status}
-                onChange={(event) => setFilters({ ...filters, status: event.target.value })}
-              >
-                <option value="">All statuses</option>
-                {statuses.map((status) => (
-                  <option key={status.value} value={status.value}>{status.label}</option>
-                ))}
-              </select>
-              <select
-                value={filters.category}
-                onChange={(event) => setFilters({ ...filters, category: event.target.value })}
-              >
-                <option value="">All categories</option>
-                {categories.map((category) => (
-                  <option key={category.value} value={category.value}>{category.label}</option>
-                ))}
-              </select>
-            </div>
-          )}
+          <div className="filter-grid">
+            <select
+              value={filters.report_type}
+              onChange={(event) => setFilters({ ...filters, report_type: event.target.value })}
+            >
+              <option value="">All reports</option>
+              <option value="lost">Lost</option>
+              <option value="found">Found</option>
+            </select>
+            <select
+              value={filters.status}
+              onChange={(event) => setFilters({ ...filters, status: event.target.value })}
+            >
+              <option value="">All statuses</option>
+              {statuses.map((status) => (
+                <option key={status.value} value={status.value}>{status.label}</option>
+              ))}
+            </select>
+            <select
+              value={filters.category}
+              onChange={(event) => setFilters({ ...filters, category: event.target.value })}
+            >
+              <option value="">All categories</option>
+              {categories.map((category) => (
+                <option key={category.value} value={category.value}>{category.label}</option>
+              ))}
+            </select>
+          </div>
 
           <IonButton type="submit" expand="block" disabled={itemsLoading}>
             <IonIcon icon={refreshOutline} slot="start" />

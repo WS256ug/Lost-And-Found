@@ -92,7 +92,7 @@ a:hover {
 
 .filters {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr auto;
+    grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(130px, 1fr)) auto;
     gap: 0.75rem;
 }
 

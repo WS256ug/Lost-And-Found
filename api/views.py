@@ -101,19 +101,22 @@ class ItemViewSet(viewsets.ModelViewSet):
                 | Q(claims__claimant=user)
             ).distinct()
 
-        can_search_private_fields = bool(user.is_authenticated and user.is_staff)
-
-        if query and can_search_private_fields:
+        if query:
+            normalized_query = query.replace(" ", "_")
             items = items.filter(
                 Q(title__icontains=query)
                 | Q(description__icontains=query)
                 | Q(location__icontains=query)
+                | Q(category__icontains=query)
+                | Q(category__icontains=normalized_query)
+                | Q(status__icontains=query)
+                | Q(report_type__icontains=query)
             )
 
-        if status_filter and can_search_private_fields:
+        if status_filter:
             items = items.filter(status=status_filter)
 
-        if category and can_search_private_fields:
+        if category:
             items = items.filter(category=category)
 
         if report_type:

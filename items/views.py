@@ -117,22 +117,34 @@ def item_list(request):
     query = request.GET.get("q", "").strip()
     status = request.GET.get("status", "").strip()
     category = request.GET.get("category", "").strip()
+    report_type = (
+        request.GET.get("type", "").strip()
+        or request.GET.get("report_type", "").strip()
+    )
     can_filter_private_details = request.user.is_authenticated and request.user.is_staff
 
     items = _visible_items_for_user(request.user)
 
-    if query and can_filter_private_details:
+    if query:
+        normalized_query = query.replace(" ", "_")
         items = items.filter(
             Q(title__icontains=query)
             | Q(description__icontains=query)
             | Q(location__icontains=query)
+            | Q(category__icontains=query)
+            | Q(category__icontains=normalized_query)
+            | Q(status__icontains=query)
+            | Q(report_type__icontains=query)
         )
 
-    if status and can_filter_private_details:
+    if status:
         items = items.filter(status=status)
 
-    if category and can_filter_private_details:
+    if category:
         items = items.filter(category=category)
+
+    if report_type:
+        items = items.filter(report_type=report_type)
 
     items = items.annotate(
         pending_claim_count=Count(
@@ -152,8 +164,10 @@ def item_list(request):
         "query": query,
         "selected_status": status,
         "selected_category": category,
+        "selected_report_type": report_type,
         "status_choices": Item.Status.choices,
         "category_choices": Item.Category.choices,
+        "report_type_choices": Item.ReportType.choices,
         "can_filter_private_details": can_filter_private_details,
     }
     return render(request, "items/item_list.html", context)

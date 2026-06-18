@@ -120,6 +120,16 @@ class MobileAPITests(APITestCase):
 
     def test_public_item_list_supports_search_and_filters(self):
         self.create_found_item()
+        Item.objects.create(
+            report_type=Item.ReportType.FOUND,
+            title="Found Statistics Book",
+            description="Blue statistics textbook.",
+            category=Item.Category.BOOKS,
+            location="Library second floor",
+            event_date="2026-06-15",
+            status=Item.Status.FOUND,
+            reported_by=self.reporter,
+        )
 
         response = self.client.get(
             reverse("api-item-list"),

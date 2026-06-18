@@ -58,3 +58,141 @@ Unauthorized: /api/auth/login/
 [17/Jun/2026 19:17:13,502] - Broken pipe from ('192.168.6.165', 50856)
 [17/Jun/2026 19:17:13,502] - Broken pipe from ('192.168.6.165', 50828)
 [17/Jun/2026 19:17:13,503] - Broken pipe from ('192.168.6.165', 37948)
+[18/Jun/2026 10:10:21] "OPTIONS /api/items/ HTTP/1.1" 200 0
+[18/Jun/2026 10:10:21] "OPTIONS /api/me/ HTTP/1.1" 200 0
+Unauthorized: /api/me/
+Unauthorized: /api/items/
+[18/Jun/2026 10:10:22] "GET /api/me/ HTTP/1.1" 401 172
+[18/Jun/2026 10:10:22] "GET /api/items/ HTTP/1.1" 401 172
+[18/Jun/2026 10:10:22] "OPTIONS /api/auth/token/refresh/ HTTP/1.1" 200 0
+[18/Jun/2026 10:10:22] "OPTIONS /api/auth/token/refresh/ HTTP/1.1" 200 0
+[18/Jun/2026 10:10:22] "POST /api/auth/token/refresh/ HTTP/1.1" 200 244
+[18/Jun/2026 10:10:22] "POST /api/auth/token/refresh/ HTTP/1.1" 200 244
+[18/Jun/2026 10:10:22] "GET /api/me/ HTTP/1.1" 200 69
+[18/Jun/2026 10:10:22] "GET /api/items/ HTTP/1.1" 200 10335
+[18/Jun/2026 10:10:22] "OPTIONS /api/notifications/ HTTP/1.1" 200 0
+[18/Jun/2026 10:10:22] "GET /media/item_images/demo/found_phone.jpg HTTP/1.1" 304 0
+[18/Jun/2026 10:10:22] "GET /media/item_images/demo/lost_laptop.jpg HTTP/1.1" 304 0
+[18/Jun/2026 10:10:22] "GET /media/item_images/demo/found_keys.jpg HTTP/1.1" 304 0
+[18/Jun/2026 10:10:22] "GET /media/item_images/demo/lost_bag.jpg HTTP/1.1" 304 0
+[18/Jun/2026 10:10:22] "GET /media/item_images/demo/found_book.jpg HTTP/1.1" 304 0
+[18/Jun/2026 10:10:22] "GET /api/notifications/ HTTP/1.1" 200 1678
+[18/Jun/2026 10:10:22] "GET /media/item_images/demo/found_id.jpg HTTP/1.1" 304 0
+[18/Jun/2026 10:10:22] "GET /media/item_images/demo/lost_wallet.jpg HTTP/1.1" 304 0
+[18/Jun/2026 10:10:24] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:10:44] "GET /api/items/ HTTP/1.1" 200 10335
+[18/Jun/2026 10:10:49] "GET /api/items/ HTTP/1.1" 200 3347
+[18/Jun/2026 10:10:50] "GET /api/items/ HTTP/1.1" 200 3347
+[18/Jun/2026 10:10:57,932] - Broken pipe from ('192.168.6.165', 49910)
+[18/Jun/2026 10:10:57,934] - Broken pipe from ('192.168.6.165', 49898)
+[18/Jun/2026 10:10:57,934] - Broken pipe from ('192.168.6.165', 49912)
+[18/Jun/2026 10:10:57,934] - Broken pipe from ('192.168.6.165', 49894)
+[18/Jun/2026 10:10:57,934] - Broken pipe from ('192.168.6.165', 49878)
+[18/Jun/2026 10:10:57,934] - Broken pipe from ('192.168.6.165', 49874)
+[18/Jun/2026 10:10:57,934] - Broken pipe from ('192.168.6.165', 49926)
+[18/Jun/2026 10:10:57,934] - Broken pipe from ('192.168.6.165', 49892)
+[18/Jun/2026 10:23:32] "GET /api/items/ HTTP/1.1" 200 3347
+[18/Jun/2026 10:23:32] "GET /media/item_images/demo/found_keys.jpg HTTP/1.1" 200 38003
+[18/Jun/2026 10:23:32] "GET /media/item_images/demo/found_book.jpg HTTP/1.1" 200 38900
+[18/Jun/2026 10:23:32] "GET /media/item_images/demo/found_phone.jpg HTTP/1.1" 200 39097
+[18/Jun/2026 10:23:32] "GET /media/item_images/demo/found_id.jpg HTTP/1.1" 200 35780
+[18/Jun/2026 10:23:32] "GET /media/item_images/Screenshot_2026-05-03_091738.png HTTP/1.1" 200 12456
+[18/Jun/2026 10:23:34] "GET /media/item_images/16083383_MTUwMC0yMDAwLWY5NGRiODU2OWU.webp HTTP/1.1" 200 85570
+[18/Jun/2026 10:23:39] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:23:40] "GET /api/items/ HTTP/1.1" 200 3347
+[18/Jun/2026 10:24:06] "OPTIONS /api/auth/login/ HTTP/1.1" 200 0
+[18/Jun/2026 10:24:07] "POST /api/auth/login/ HTTP/1.1" 200 489
+[18/Jun/2026 10:24:07] "OPTIONS /api/me/ HTTP/1.1" 200 0
+[18/Jun/2026 10:24:07] "GET /api/me/ HTTP/1.1" 200 173
+[18/Jun/2026 10:24:07] "OPTIONS /api/notifications/ HTTP/1.1" 200 0
+[18/Jun/2026 10:24:07] "GET /api/notifications/ HTTP/1.1" 200 1621
+[18/Jun/2026 10:24:08] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:24:13] "GET /api/notifications/ HTTP/1.1" 200 1621
+[18/Jun/2026 10:24:16] "GET /api/notifications/ HTTP/1.1" 200 1621
+[18/Jun/2026 10:24:18] "OPTIONS /api/notifications/4/read/ HTTP/1.1" 200 0
+[18/Jun/2026 10:24:18] "POST /api/notifications/4/read/ HTTP/1.1" 200 1648
+[18/Jun/2026 10:24:18] "OPTIONS /api/items/18/ HTTP/1.1" 200 0
+[18/Jun/2026 10:24:18] "GET /api/items/18/ HTTP/1.1" 200 581
+[18/Jun/2026 10:25:14] "OPTIONS /api/items/ HTTP/1.1" 200 0
+[18/Jun/2026 10:25:16] "POST /api/items/ HTTP/1.1" 201 694
+[18/Jun/2026 10:25:16] "GET /api/items/ HTTP/1.1" 200 3872
+[18/Jun/2026 10:25:17] "GET /media/item_images/1000260657.jpg HTTP/1.1" 200 2434943
+[18/Jun/2026 10:25:24] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:25:37] "OPTIONS /api/items/26/ HTTP/1.1" 200 0
+[18/Jun/2026 10:25:37] "GET /api/items/26/ HTTP/1.1" 200 694
+[18/Jun/2026 10:25:52] "GET /api/items/ HTTP/1.1" 200 3872
+[18/Jun/2026 10:26:21] "GET /api/items/26/ HTTP/1.1" 200 384
+[18/Jun/2026 10:26:37] "POST /api/auth/login/ HTTP/1.1" 200 489
+[18/Jun/2026 10:26:38] "GET /api/me/ HTTP/1.1" 200 69
+[18/Jun/2026 10:26:38] "GET /api/notifications/ HTTP/1.1" 200 1678
+[18/Jun/2026 10:26:55] "GET /api/items/26/ HTTP/1.1" 200 694
+[18/Jun/2026 10:27:05] "OPTIONS /api/items/26/start-conversation/ HTTP/1.1" 200 0
+[18/Jun/2026 10:27:05] "POST /api/items/26/start-conversation/ HTTP/1.1" 201 695
+[18/Jun/2026 10:27:16] "GET /api/items/26/ HTTP/1.1" 200 694
+[18/Jun/2026 10:27:18] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:27:24] "GET /api/items/26/ HTTP/1.1" 200 384
+Unauthorized: /api/auth/login/
+[18/Jun/2026 10:27:52] "POST /api/auth/login/ HTTP/1.1" 401 63
+[18/Jun/2026 10:28:19] "POST /api/auth/login/ HTTP/1.1" 200 491
+[18/Jun/2026 10:28:19] "GET /api/me/ HTTP/1.1" 200 174
+[18/Jun/2026 10:28:19] "GET /api/notifications/ HTTP/1.1" 200 2
+[18/Jun/2026 10:28:21] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:28:22] "GET /api/items/26/ HTTP/1.1" 200 384
+[18/Jun/2026 10:28:51] "OPTIONS /api/items/26/claims/ HTTP/1.1" 200 0
+[18/Jun/2026 10:28:51] "POST /api/items/26/claims/ HTTP/1.1" 201 747
+[18/Jun/2026 10:28:52] "GET /api/items/26/ HTTP/1.1" 200 535
+[18/Jun/2026 10:29:09] "POST /api/auth/login/ HTTP/1.1" 200 489
+[18/Jun/2026 10:29:09] "GET /api/me/ HTTP/1.1" 200 173
+[18/Jun/2026 10:29:10] "GET /api/notifications/ HTTP/1.1" 200 3172
+[18/Jun/2026 10:29:10] "GET /media/item_images/1000260657.jpg HTTP/1.1" 304 0
+[18/Jun/2026 10:29:10] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:29:12] "GET /api/notifications/ HTTP/1.1" 200 3172
+[18/Jun/2026 10:29:15] "OPTIONS /api/notifications/5/read/ HTTP/1.1" 200 0
+[18/Jun/2026 10:29:15] "POST /api/notifications/5/read/ HTTP/1.1" 200 1550
+[18/Jun/2026 10:29:22] "OPTIONS /api/claims/8/review/ HTTP/1.1" 200 0
+[18/Jun/2026 10:29:22] "POST /api/claims/8/review/ HTTP/1.1" 200 873
+[18/Jun/2026 10:29:22] "GET /api/notifications/ HTTP/1.1" 200 3314
+[18/Jun/2026 10:29:22] "GET /api/items/ HTTP/1.1" 200 3876
+[18/Jun/2026 10:29:36] "OPTIONS /api/conversations/ HTTP/1.1" 200 0
+[18/Jun/2026 10:29:36] "GET /api/conversations/ HTTP/1.1" 200 664
+[18/Jun/2026 10:29:39] "GET /api/conversations/ HTTP/1.1" 200 664
+[18/Jun/2026 10:29:42] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:29:42] "GET /api/items/26/ HTTP/1.1" 200 698
+[18/Jun/2026 10:29:57] "POST /api/auth/login/ HTTP/1.1" 200 491
+[18/Jun/2026 10:29:58] "GET /api/me/ HTTP/1.1" 200 174
+[18/Jun/2026 10:29:58] "GET /api/notifications/ HTTP/1.1" 200 1610
+[18/Jun/2026 10:29:58] "GET /media/item_images/1000260657.jpg HTTP/1.1" 304 0
+[18/Jun/2026 10:29:58] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:30:00] "GET /api/items/26/ HTTP/1.1" 200 566
+[18/Jun/2026 10:30:03] "GET /api/notifications/ HTTP/1.1" 200 1610
+[18/Jun/2026 10:30:04] "OPTIONS /api/notifications/6/read/ HTTP/1.1" 200 0
+[18/Jun/2026 10:30:04] "POST /api/notifications/6/read/ HTTP/1.1" 200 1637
+[18/Jun/2026 10:30:04] "GET /api/items/26/ HTTP/1.1" 200 566
+[18/Jun/2026 10:30:06] "GET /api/conversations/ HTTP/1.1" 200 2
+[18/Jun/2026 10:30:08] "GET /api/conversations/ HTTP/1.1" 200 2
+[18/Jun/2026 10:30:18] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:30:19] "GET /api/items/26/ HTTP/1.1" 200 566
+[18/Jun/2026 10:31:14] "GET /api/items/26/ HTTP/1.1" 200 566
+[18/Jun/2026 10:31:31] "POST /api/auth/login/ HTTP/1.1" 200 489
+[18/Jun/2026 10:31:31] "GET /api/me/ HTTP/1.1" 200 173
+[18/Jun/2026 10:31:31] "GET /api/notifications/ HTTP/1.1" 200 3314
+[18/Jun/2026 10:32:32] "GET /api/notifications/ HTTP/1.1" 200 3314
+[18/Jun/2026 10:33:15,442] - Broken pipe from ('192.168.6.165', 38596)
+[18/Jun/2026 10:33:15,442] - Broken pipe from ('192.168.6.165', 57042)
+[18/Jun/2026 10:33:15,444] - Broken pipe from ('192.168.6.165', 38624)
+[18/Jun/2026 10:34:28] "GET /media/item_images/1000260657.jpg HTTP/1.1" 304 0
+[18/Jun/2026 10:34:32] "GET /api/items/26/ HTTP/1.1" 200 698
+[18/Jun/2026 10:34:36] "GET /media/item_images/JPEG_20260617_160800_992085505673551928.jpg HTTP/1.1" 200 5461520
+[18/Jun/2026 10:34:41] "GET /api/conversations/ HTTP/1.1" 200 664
+[18/Jun/2026 10:34:44] "GET /api/conversations/ HTTP/1.1" 200 664
+[18/Jun/2026 10:34:56] "POST /api/auth/login/ HTTP/1.1" 200 491
+[18/Jun/2026 10:34:56] "GET /api/me/ HTTP/1.1" 200 174
+[18/Jun/2026 10:34:56] "GET /api/notifications/ HTTP/1.1" 200 1639
+[18/Jun/2026 10:34:59] "GET /api/items/26/ HTTP/1.1" 200 566
+[18/Jun/2026 10:35:02] "GET /api/conversations/ HTTP/1.1" 200 2
+[18/Jun/2026 10:35:04] "GET /api/conversations/ HTTP/1.1" 200 2
+[18/Jun/2026 10:35:06] "GET /api/items/26/ HTTP/1.1" 200 566
+[18/Jun/2026 10:35:43,781] - Broken pipe from ('192.168.6.165', 58892)
+[18/Jun/2026 10:35:43,781] - Broken pipe from ('192.168.6.165', 58888)
+[18/Jun/2026 10:35:43,782] - Broken pipe from ('192.168.6.165', 58910)
+[18/Jun/2026 10:35:43,782] - Broken pipe from ('192.168.6.165', 58900)

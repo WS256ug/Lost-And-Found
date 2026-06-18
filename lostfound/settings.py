@@ -184,6 +184,23 @@ SERVE_MEDIA_FILES = os.environ.get(
 LOGIN_REDIRECT_URL = 'item_list'
 LOGOUT_REDIRECT_URL = 'item_list'
 
+SESSION_ENGINE = os.environ.get(
+    "DJANGO_SESSION_ENGINE",
+    "django.contrib.sessions.backends.signed_cookies"
+    if os.environ.get("VERCEL")
+    else "django.contrib.sessions.backends.db",
+)
+SESSION_COOKIE_SECURE = os.environ.get(
+    "SESSION_COOKIE_SECURE",
+    "1" if os.environ.get("VERCEL") else "0",
+) == "1"
+CSRF_COOKIE_SECURE = os.environ.get(
+    "CSRF_COOKIE_SECURE",
+    "1" if os.environ.get("VERCEL") else "0",
+) == "1"
+SESSION_COOKIE_SAMESITE = "Lax"
+CSRF_COOKIE_SAMESITE = "Lax"
+
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 REST_FRAMEWORK = {

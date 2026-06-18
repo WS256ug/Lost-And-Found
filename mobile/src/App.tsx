@@ -819,7 +819,7 @@ export default function App() {
 
           <label>
             Photo
-            <input accept="image/*" capture="environment" type="file" onChange={handleImage} />
+            <input accept="image/*" type="file" onChange={handleImage} />
           </label>
 
           {reportForm.image && <p className="file-note">{reportForm.image.name}</p>}

@@ -19,6 +19,7 @@ const API_URLS = [
   configuredApiUrl,
   ...(Capacitor.isNativePlatform()
     ? [
+      "https://lost-and-found-murex-kappa.vercel.app/api",
       "http://127.0.0.1:8000/api",
       "http://10.0.2.2:8000/api",
       "http://10.10.6.122:8000/api",

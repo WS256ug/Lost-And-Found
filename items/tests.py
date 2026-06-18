@@ -135,6 +135,41 @@ class ItemViewsTests(TestCase):
         self.assertRedirects(response, reverse("item_detail", args=[self.found_item.pk]))
         self.assertFalse(Conversation.objects.filter(item=self.found_item, participant=participant).exists())
 
+    def test_claimant_can_message_reporter_for_protected_found_item(self):
+        participant = User.objects.create_user(
+            username="participant1",
+            password="StrongPass123",
+        )
+        Claim.objects.create(
+            item=self.found_item,
+            claimant=participant,
+            proof_details="The phone has a cracked top corner.",
+            answer_matches=True,
+        )
+        self.client.login(username="participant1", password="StrongPass123")
+
+        detail_response = self.client.get(
+            reverse("item_detail", args=[self.found_item.pk])
+        )
+
+        self.assertEqual(detail_response.status_code, 200)
+        self.assertContains(detail_response, "Found Phone")
+        self.assertContains(detail_response, "Cafeteria")
+        self.assertContains(detail_response, "Message reporter")
+
+        response = self.client.post(
+            reverse("start_conversation", args=[self.found_item.pk])
+        )
+        conversation = Conversation.objects.get(
+            item=self.found_item,
+            participant=participant,
+        )
+
+        self.assertRedirects(
+            response,
+            reverse("conversation_detail", args=[conversation.pk]),
+        )
+
     def test_start_conversation_reuses_existing_chat(self):
         participant = User.objects.create_user(
             username="participant1",

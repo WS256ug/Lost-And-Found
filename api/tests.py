@@ -230,6 +230,33 @@ class MobileAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
         self.assertFalse(Conversation.objects.exists())
 
+    def test_claimant_can_start_conversation_for_protected_found_item(self):
+        item = self.create_found_item()
+        Claim.objects.create(
+            item=item,
+            claimant=self.participant,
+            proof_details="The phone has a cracked top corner.",
+            answer_matches=True,
+        )
+        self.authenticate(self.participant)
+
+        detail_response = self.client.get(reverse("api-item-detail", args=[item.pk]))
+
+        self.assertEqual(detail_response.status_code, status.HTTP_200_OK)
+        self.assertTrue(detail_response.data["can_view_private_details"])
+        self.assertEqual(detail_response.data["title"], "Found Phone")
+
+        response = self.client.post(
+            reverse("api-item-start-conversation", args=[item.pk]),
+            {},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertTrue(
+            Conversation.objects.filter(item=item, participant=self.participant).exists()
+        )
+
     def test_user_can_submit_claim_for_found_item(self):
         item = self.create_found_item()
         self.authenticate(self.participant)

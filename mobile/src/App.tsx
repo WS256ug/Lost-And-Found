@@ -696,10 +696,18 @@ export default function App() {
             {isOwnItem ? (
               <div className="info-panel">This is your report. Messages about it appear in Messages.</div>
             ) : selectedItem.my_claim ? (
-              <div className="info-panel">
-                Claim status: {selectedItem.my_claim.status_display}
-                {selectedItem.my_claim.answer_matches ? " - verification answer matched" : ""}
-                {selectedItem.my_claim.review_note ? ` - ${selectedItem.my_claim.review_note}` : ""}
+              <div className="stack">
+                <div className="info-panel">
+                  Claim status: {selectedItem.my_claim.status_display}
+                  {selectedItem.my_claim.answer_matches ? " - verification answer matched" : ""}
+                  {selectedItem.my_claim.review_note ? ` - ${selectedItem.my_claim.review_note}` : ""}
+                </div>
+                {canViewPrivateDetails && (
+                  <IonButton expand="block" disabled={busy} onClick={() => void handleStartConversation()}>
+                    <IonIcon icon={chatbubbleEllipsesOutline} slot="start" />
+                    Message Reporter
+                  </IonButton>
+                )}
               </div>
             ) : selectedItem.report_type === "found" && !canViewPrivateDetails ? (
               <form className="claim-panel" onSubmit={handleSubmitClaim}>

@@ -93,7 +93,10 @@ class Item(models.Model):
             return False
         if user.is_staff or self.reported_by_id == user.id:
             return True
-        return self.conversations.filter(participant=user).exists()
+        return (
+            self.claims.filter(claimant=user).exists()
+            or self.conversations.filter(participant=user).exists()
+        )
 
 
 class Claim(models.Model):

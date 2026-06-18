@@ -23,3 +23,14 @@ should_migrate_on_startup = os.environ.get(
 
 if should_migrate_on_startup:
     call_command("migrate", interactive=False, verbosity=0)
+
+should_seed_demo_data = os.environ.get(
+    "SEED_DEMO_DATA",
+    "1" if os.environ.get("VERCEL") else "0",
+) == "1"
+
+if should_seed_demo_data:
+    from items.models import Item
+
+    if not Item.objects.exists():
+        call_command("seed_demo_data", verbosity=0)

@@ -170,7 +170,16 @@ STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+MEDIA_ROOT = Path(
+    os.environ.get(
+        "DJANGO_MEDIA_ROOT",
+        "/tmp/media" if os.environ.get("VERCEL") else str(BASE_DIR / "media"),
+    )
+)
+SERVE_MEDIA_FILES = os.environ.get(
+    "SERVE_MEDIA_FILES",
+    "1" if os.environ.get("VERCEL") else "0",
+) == "1"
 
 LOGIN_REDIRECT_URL = 'item_list'
 LOGOUT_REDIRECT_URL = 'item_list'

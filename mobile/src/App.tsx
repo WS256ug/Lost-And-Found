@@ -109,7 +109,14 @@ function shortMessage(message: string, limit = 96) {
 }
 
 function itemLabel(item: Item) {
-  return item.title ?? item.public_label ?? "Found item";
+  if (item.title) {
+    return item.title;
+  }
+
+  const fallbackLabel = item.public_label ?? (
+    item.report_type === "lost" ? "Lost report" : "Found item"
+  );
+  return item.id ? `${fallbackLabel} #${item.id}` : fallbackLabel;
 }
 
 function itemPostedLabel(item: Item) {

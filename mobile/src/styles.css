@@ -205,7 +205,7 @@ textarea:focus {
 .item-thumb,
 .detail-image {
   position: relative;
-  background: #dde8ec;
+  background: #f6fafb;
 }
 
 .item-thumb {
@@ -217,7 +217,14 @@ textarea:focus {
   width: 100%;
   height: 100%;
   display: block;
-  object-fit: cover;
+  box-sizing: border-box;
+  object-fit: contain;
+  object-position: center;
+  background: #f6fafb;
+}
+
+.item-thumb img {
+  padding: 4px;
 }
 
 .item-thumb span:not(.pill),

@@ -27,7 +27,8 @@ const API_URLS = (
 ).filter((url, index, urls): url is string => Boolean(url) && urls.indexOf(url) === index);
 
 let activeApiUrl = API_URLS[0];
-const REQUEST_TIMEOUT_MS = 6000;
+const REQUEST_TIMEOUT_MS = 30000;
+const UPLOAD_TIMEOUT_MS = 120000;
 
 const ACCESS_KEY = "lostfound.access";
 const REFRESH_KEY = "lostfound.refresh";
@@ -35,7 +36,18 @@ const TOKEN_API_URL_KEY = "lostfound.tokenApiUrl";
 
 type RequestOptions = RequestInit & {
   retry?: boolean;
+  timeoutMs?: number;
 };
+
+class ApiTimeoutError extends Error {
+  constructor(timeoutMs: number) {
+    super(
+      `The server took longer than ${Math.round(timeoutMs / 1000)} seconds to respond. ` +
+      "Please check your connection and try again."
+    );
+    this.name = "ApiTimeoutError";
+  }
+}
 
 export function getStoredTokens(): AuthTokens | null {
   const access = localStorage.getItem(ACCESS_KEY);
@@ -109,13 +121,23 @@ function isRetryableNetworkError(error: unknown) {
     || (error instanceof DOMException && error.name === "AbortError");
 }
 
-async function fetchWithTimeout(url: string, options: RequestInit): Promise<Response> {
+async function fetchWithTimeout(
+  url: string,
+  options: RequestInit,
+  timeoutMs: number
+): Promise<Response> {
   const controller = new AbortController();
-  const timeout = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-  const abortFromParent = () => controller.abort();
+  let timedOut = false;
+  const timeout = window.setTimeout(() => {
+    timedOut = true;
+    controller.abort(new DOMException("Request timed out.", "TimeoutError"));
+  }, timeoutMs);
+  const abortFromParent = () => controller.abort(
+    options.signal?.reason ?? new DOMException("Request was cancelled.", "AbortError")
+  );
 
   if (options.signal?.aborted) {
-    controller.abort();
+    abortFromParent();
   } else {
     options.signal?.addEventListener("abort", abortFromParent, { once: true });
   }
@@ -125,19 +147,27 @@ async function fetchWithTimeout(url: string, options: RequestInit): Promise<Resp
       ...options,
       signal: controller.signal
     });
+  } catch (error) {
+    if (timedOut) {
+      throw new ApiTimeoutError(timeoutMs);
+    }
+    throw error;
   } finally {
     window.clearTimeout(timeout);
     options.signal?.removeEventListener("abort", abortFromParent);
   }
 }
 
-async function fetchApi(path: string, options: RequestInit): Promise<Response> {
+async function fetchApi(path: string, options: RequestOptions): Promise<Response> {
   const apiUrls = [activeApiUrl, ...API_URLS.filter((url) => url !== activeApiUrl)];
   let lastError: unknown;
+  const timeoutMs = options.timeoutMs ?? (
+    options.body && isFormData(options.body) ? UPLOAD_TIMEOUT_MS : REQUEST_TIMEOUT_MS
+  );
 
   for (const apiUrl of apiUrls) {
     try {
-      const response = await fetchWithTimeout(`${apiUrl}${path}`, options);
+      const response = await fetchWithTimeout(`${apiUrl}${path}`, options, timeoutMs);
       activeApiUrl = apiUrl;
       return response;
     } catch (error) {
@@ -174,7 +204,11 @@ async function request<T>(path: string, options: RequestOptions = {}): Promise<T
   } catch (error) {
     console.error("FETCH ERROR:", error);
 
-    if (error instanceof TypeError) {
+    if (error instanceof ApiTimeoutError) {
+      throw error;
+    }
+
+    if (error instanceof TypeError || (error instanceof DOMException && error.name === "AbortError")) {
       throw new Error(
         `Fetch failed while calling the Django API at ${API_URLS.join(" or ")}. ` +
         "This can be caused by the API being unreachable, CORS, mixed content, Android cleartext HTTP blocking, stale native build settings, or the phone being on a different network segment. " +

@@ -98,6 +98,31 @@ class ItemViewsTests(TestCase):
         self.assertNotContains(response, "Cafeteria")
         self.assertNotContains(response, "Message reporter")
 
+    def test_item_image_serves_database_image_for_found_item(self):
+        self.found_item.image_data = b"image-bytes"
+        self.found_item.image_content_type = "image/png"
+        self.found_item.image_filename = "found.png"
+        self.found_item.save(
+            update_fields=["image_data", "image_content_type", "image_filename"]
+        )
+
+        response = self.client.get(reverse("item_image", args=[self.found_item.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response["Content-Type"], "image/png")
+        self.assertEqual(response.content, b"image-bytes")
+
+    def test_item_image_blocks_private_lost_item_for_uninvolved_user(self):
+        self.item.image_data = b"private-image"
+        self.item.image_content_type = "image/png"
+        self.item.save(update_fields=["image_data", "image_content_type"])
+        User.objects.create_user(username="other1", password="StrongPass123")
+        self.client.login(username="other1", password="StrongPass123")
+
+        response = self.client.get(reverse("item_image", args=[self.item.pk]))
+
+        self.assertEqual(response.status_code, 404)
+
     def test_start_conversation_is_blocked_for_protected_found_item(self):
         participant = User.objects.create_user(
             username="participant1",

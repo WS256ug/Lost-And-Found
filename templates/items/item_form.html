@@ -49,8 +49,8 @@
                 <label for="{{ form.image.id_for_label }}">Photo</label>
                 <div class="image-upload-row">
                     <div class="image-preview">
-                        {% if item.image %}
-                            <img src="{{ item.image.url }}" alt="{{ item.title }}" id="imagePreview">
+                        {% if item.image or item.image_data %}
+                            <img src="{% url 'item_image' item.pk %}" alt="{{ item.title }}" id="imagePreview">
                         {% else %}
                             <img src="" alt="" id="imagePreview" hidden>
                             <span id="imagePreviewFallback">No image selected</span>

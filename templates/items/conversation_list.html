@@ -13,8 +13,8 @@
     <div class="chat-list">
         {% for conversation in conversations %}
             <a href="{% url 'conversation_detail' conversation.pk %}" class="chat-list-item">
-                {% if conversation.item.image %}
-                    <img src="{{ conversation.item.image.url }}" alt="{{ conversation.item.title }}" class="chat-list-item__thumb">
+                {% if conversation.item.image or conversation.item.image_data %}
+                    <img src="{% url 'item_image' conversation.item.pk %}" alt="{{ conversation.item.title }}" class="chat-list-item__thumb">
                 {% else %}
                     <div class="chat-list-item__thumb chat-list-item__thumb--placeholder">{{ conversation.item.title|first|upper }}</div>
                 {% endif %}

@@ -164,13 +164,14 @@ class MobileAPITests(APITestCase):
 
     def test_authenticated_user_can_create_item_with_image(self):
         self.authenticate(self.participant)
+        image_bytes = (
+            b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00"
+            b"\xff\xff\xff,\x00\x00\x00\x00\x01\x00\x01\x00"
+            b"\x00\x02\x02D\x01\x00;"
+        )
         image = SimpleUploadedFile(
             "phone.gif",
-            (
-                b"GIF87a\x01\x00\x01\x00\x80\x01\x00\x00\x00\x00"
-                b"\xff\xff\xff,\x00\x00\x00\x00\x01\x00\x01\x00"
-                b"\x00\x02\x02D\x01\x00;"
-            ),
+            image_bytes,
             content_type="image/gif",
         )
 
@@ -193,6 +194,12 @@ class MobileAPITests(APITestCase):
         self.assertEqual(item.reported_by, self.participant)
         self.assertEqual(item.status, Item.Status.FOUND)
         self.assertTrue(item.image.name.startswith("item_images/"))
+        self.assertEqual(item.image_data, image_bytes)
+        self.assertEqual(item.image_content_type, "image/gif")
+        self.assertIn(
+            reverse("item_image", args=[item.pk]),
+            response.data["image_url"],
+        )
 
     def test_unauthenticated_user_cannot_create_item(self):
         response = self.client.post(

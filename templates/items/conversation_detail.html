@@ -34,8 +34,8 @@
     </div>
 
     <aside class="panel chat-item-panel">
-        {% if conversation.item.image %}
-            <img src="{{ conversation.item.image.url }}" alt="{{ conversation.item.title }}" class="chat-item-panel__image">
+        {% if conversation.item.image or conversation.item.image_data %}
+            <img src="{% url 'item_image' conversation.item.pk %}" alt="{{ conversation.item.title }}" class="chat-item-panel__image">
         {% endif %}
         <span class="badge badge-{{ conversation.item.report_type }}">{{ conversation.item.get_report_type_display }}</span>
         <h2>{{ conversation.item.title }}</h2>

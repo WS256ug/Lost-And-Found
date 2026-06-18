@@ -56,8 +56,8 @@
                     <tr>
                         <td>
                             <div class="admin-item-cell">
-                                {% if item.image %}
-                                    <img src="{{ item.image.url }}" alt="{{ item.title }}" class="admin-thumb">
+                                {% if item.image or item.image_data %}
+                                    <img src="{% url 'item_image' item.pk %}" alt="{{ item.title }}" class="admin-thumb">
                                 {% else %}
                                     <div class="admin-thumb admin-thumb--placeholder">{{ item.title|first|upper }}</div>
                                 {% endif %}

@@ -31,6 +31,9 @@ class Item(models.Model):
     location = models.CharField(max_length=150)
     event_date = models.DateField()
     image = models.ImageField(upload_to="item_images/", blank=True, null=True)
+    image_data = models.BinaryField(blank=True, null=True)
+    image_content_type = models.CharField(max_length=100, blank=True)
+    image_filename = models.CharField(max_length=255, blank=True)
     verification_question = models.CharField(max_length=255, blank=True)
     verification_answer_hash = models.CharField(max_length=128, blank=True)
     status = models.CharField(max_length=20, choices=Status.choices)
@@ -55,6 +58,29 @@ class Item(models.Model):
     def set_verification_answer(self, raw_answer):
         answer = (raw_answer or "").strip()
         self.verification_answer_hash = make_password(answer) if answer else ""
+
+    def store_image_file(self, image_file):
+        if not image_file:
+            return
+
+        if hasattr(image_file, "seek"):
+            image_file.seek(0)
+
+        if hasattr(image_file, "chunks"):
+            image_bytes = b"".join(image_file.chunks())
+        else:
+            image_bytes = image_file.read()
+
+        if hasattr(image_file, "seek"):
+            image_file.seek(0)
+
+        self.image_data = image_bytes
+        self.image_content_type = getattr(
+            image_file,
+            "content_type",
+            "",
+        ) or "application/octet-stream"
+        self.image_filename = (getattr(image_file, "name", "") or "")[:255]
 
     def check_verification_answer(self, raw_answer):
         answer = (raw_answer or "").strip()

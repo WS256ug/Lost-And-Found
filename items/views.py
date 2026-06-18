@@ -1,11 +1,14 @@
 from functools import wraps
+import mimetypes
 
 from django.contrib import messages
 from django.contrib.auth.models import User
 from django.contrib.auth.decorators import login_required
+from django.http import FileResponse, Http404, HttpResponse
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.utils import timezone
+from django.utils.html import escape
 from django.views.decorators.http import require_POST
 
 from accounts.forms import AdminProfileForm, AdminUserForm
@@ -33,6 +36,53 @@ def _get_profile_or_none(user):
         return user.profile
     except Profile.DoesNotExist:
         return None
+
+
+def _missing_image_response(item):
+    label = "Image unavailable"
+    if item.report_type == Item.ReportType.FOUND:
+        label = "Found item photo unavailable"
+    svg = f"""
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="675" viewBox="0 0 900 675">
+  <rect width="900" height="675" fill="#f6fafb"/>
+  <rect x="120" y="105" width="660" height="465" rx="32" fill="#e4edf2"/>
+  <circle cx="315" cy="255" r="54" fill="#c7d8e0"/>
+  <path d="M168 506l180-176 110 108 85-84 189 152z" fill="#c7d8e0"/>
+  <text x="450" y="612" text-anchor="middle" font-family="Arial, sans-serif" font-size="34" font-weight="700" fill="#597180">{escape(label)}</text>
+</svg>
+"""
+    return HttpResponse(svg, content_type="image/svg+xml")
+
+
+def item_image(request, pk):
+    item = get_object_or_404(Item, pk=pk)
+    if (
+        item.report_type == Item.ReportType.LOST
+        and not item.can_user_view_private_details(request.user)
+    ):
+        raise Http404
+
+    if item.image_data:
+        response = HttpResponse(
+            bytes(item.image_data),
+            content_type=item.image_content_type or "application/octet-stream",
+        )
+        if item.image_filename:
+            filename = item.image_filename.replace('"', "")
+            response["Content-Disposition"] = f'inline; filename="{filename}"'
+        return response
+
+    if item.image:
+        content_type = (
+            mimetypes.guess_type(item.image.name)[0]
+            or "application/octet-stream"
+        )
+        try:
+            return FileResponse(item.image.open("rb"), content_type=content_type)
+        except (FileNotFoundError, OSError, ValueError):
+            return _missing_image_response(item)
+
+    raise Http404
 
 
 def _get_or_create_profile(user):

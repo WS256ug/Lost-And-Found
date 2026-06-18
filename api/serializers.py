@@ -1,5 +1,6 @@
 from django.contrib.auth.models import User
 from django.contrib.auth.password_validation import validate_password
+from django.urls import reverse
 from rest_framework import serializers
 
 from accounts.models import Profile
@@ -89,13 +90,14 @@ class ItemSummarySerializer(serializers.ModelSerializer):
         )
 
     def get_image_url(self, obj):
-        if not obj.image:
+        if not obj.image and not obj.image_data:
             return None
 
+        url = reverse("item_image", args=[obj.pk])
         request = self.context.get("request")
         if request is None:
-            return obj.image.url
-        return request.build_absolute_uri(obj.image.url)
+            return url
+        return request.build_absolute_uri(url)
 
 
 class PublicFoundItemSerializer(serializers.ModelSerializer):
@@ -123,13 +125,14 @@ class PublicFoundItemSerializer(serializers.ModelSerializer):
         )
 
     def get_image_url(self, obj):
-        if not obj.image:
+        if not obj.image and not obj.image_data:
             return None
 
+        url = reverse("item_image", args=[obj.pk])
         request = self.context.get("request")
         if request is None:
-            return obj.image.url
-        return request.build_absolute_uri(obj.image.url)
+            return url
+        return request.build_absolute_uri(url)
 
     def get_public_label(self, obj):
         if obj.report_type == Item.ReportType.FOUND:
@@ -271,6 +274,7 @@ class ItemSerializer(ItemSummarySerializer):
         return value
 
     def create(self, validated_data):
+        image = validated_data.get("image")
         verification_answer = validated_data.pop("verification_answer", "")
         report_type = validated_data["report_type"]
         validated_data["status"] = (
@@ -279,17 +283,30 @@ class ItemSerializer(ItemSummarySerializer):
             else Item.Status.FOUND
         )
         item = super().create(validated_data)
+        update_fields = []
+        if image:
+            item.store_image_file(image)
+            update_fields.extend(["image_data", "image_content_type", "image_filename"])
         if verification_answer:
             item.set_verification_answer(verification_answer)
-            item.save(update_fields=["verification_answer_hash"])
+            update_fields.append("verification_answer_hash")
+        if update_fields:
+            item.save(update_fields=update_fields)
         return item
 
     def update(self, instance, validated_data):
+        image = validated_data.get("image")
         verification_answer = validated_data.pop("verification_answer", "")
         item = super().update(instance, validated_data)
+        update_fields = []
+        if image:
+            item.store_image_file(image)
+            update_fields.extend(["image_data", "image_content_type", "image_filename"])
         if verification_answer:
             item.set_verification_answer(verification_answer)
-            item.save(update_fields=["verification_answer_hash"])
+            update_fields.append("verification_answer_hash")
+        if update_fields:
+            item.save(update_fields=update_fields)
         return item
 
 

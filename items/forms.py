@@ -29,8 +29,11 @@ class ItemForm(forms.ModelForm):
     def save(self, commit=True):
         item = super().save(commit=False)
         verification_answer = self.cleaned_data.get("verification_answer", "")
+        image = self.cleaned_data.get("image")
         if verification_answer:
             item.set_verification_answer(verification_answer)
+        if image:
+            item.store_image_file(image)
         if commit:
             item.save()
             self.save_m2m()
@@ -66,8 +69,11 @@ class AdminItemForm(forms.ModelForm):
     def save(self, commit=True):
         item = super().save(commit=False)
         verification_answer = self.cleaned_data.get("verification_answer", "")
+        image = self.cleaned_data.get("image")
         if verification_answer:
             item.set_verification_answer(verification_answer)
+        if image:
+            item.store_image_file(image)
         if commit:
             item.save()
             self.save_m2m()

@@ -35,10 +35,10 @@
             <a href="{% url 'admin_item_list' %}" class="btn-secondary">Back to items</a>
         </div>
     </form>
-    {% if item.image %}
+    {% if item.image or item.image_data %}
         <div class="admin-image-preview">
             <p class="admin-form-help">Current image</p>
-            <img src="{{ item.image.url }}" alt="{{ item.title }}" class="admin-image-preview__img">
+            <img src="{% url 'item_image' item.pk %}" alt="{{ item.title }}" class="admin-image-preview__img">
         </div>
     {% endif %}
 </section>

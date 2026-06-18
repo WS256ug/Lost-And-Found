@@ -312,6 +312,7 @@ class Command(BaseCommand):
         for row in item_rows:
             verification_answer = row.pop("verification_answer", "")
             created_offset = row.pop("created_offset")
+            image_name = row.get("image")
             item, _ = Item.objects.update_or_create(
                 title=row["title"],
                 defaults=row,
@@ -319,6 +320,20 @@ class Command(BaseCommand):
             if verification_answer:
                 item.set_verification_answer(verification_answer)
                 item.save(update_fields=["verification_answer_hash"])
+            if image_name:
+                image_path = Path(settings.MEDIA_ROOT) / image_name
+                if image_path.exists():
+                    with image_path.open("rb") as image_file:
+                        item.store_image_file(image_file)
+                    item.image_content_type = "image/jpeg"
+                    item.image_filename = image_path.name
+                    item.save(
+                        update_fields=[
+                            "image_data",
+                            "image_content_type",
+                            "image_filename",
+                        ]
+                    )
             Item.objects.filter(pk=item.pk).update(
                 created_at=timezone.now() - timedelta(days=created_offset),
             )

@@ -48,8 +48,8 @@
                     <tr>
                         <td>
                             <div class="admin-item-cell">
-                                {% if conversation.item.image %}
-                                    <img src="{{ conversation.item.image.url }}" alt="{{ conversation.item.title }}" class="admin-thumb">
+                                {% if conversation.item.image or conversation.item.image_data %}
+                                    <img src="{% url 'item_image' conversation.item.pk %}" alt="{{ conversation.item.title }}" class="admin-thumb">
                                 {% else %}
                                     <div class="admin-thumb admin-thumb--placeholder">{{ conversation.item.title|first|upper }}</div>
                                 {% endif %}
@@ -102,8 +102,8 @@
                         <tr>
                             <td>
                                 <div class="admin-item-cell">
-                                    {% if item.image %}
-                                        <img src="{{ item.image.url }}" alt="{{ item.title }}" class="admin-thumb">
+                                    {% if item.image or item.image_data %}
+                                        <img src="{% url 'item_image' item.pk %}" alt="{{ item.title }}" class="admin-thumb">
                                     {% else %}
                                         <div class="admin-thumb admin-thumb--placeholder">{{ item.title|first|upper }}</div>
                                     {% endif %}

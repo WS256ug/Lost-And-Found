@@ -39,8 +39,8 @@
         <a href="{% url 'item_detail' item.pk %}" class="item-card">
 
             <div class="item-card__image-wrap">
-                {% if item.image %}
-                    <img src="{{ item.image.url }}" alt="{% if item.viewer_can_view_private_details %}{{ item.title }}{% else %}Found item{% endif %}" class="item-card__image">
+                {% if item.image or item.image_data %}
+                    <img src="{% url 'item_image' item.pk %}" alt="{% if item.viewer_can_view_private_details %}{{ item.title }}{% else %}Found item{% endif %}" class="item-card__image">
                 {% else %}
                     <div class="item-card__placeholder">
                         {% if not item.viewer_can_view_private_details %}

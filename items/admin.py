@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.urls import reverse
 from django.utils.html import format_html
 
 from .models import Claim, Conversation, Item, Message, Notification
@@ -28,20 +29,20 @@ class ItemAdmin(admin.ModelAdmin):
 
     @admin.display(description="Image")
     def image_preview(self, obj):
-        if obj.image:
+        if obj.image or obj.image_data:
             return format_html(
-                '<img src="{}" alt="{}" style="width: 56px; height: 56px; object-fit: cover; border-radius: 8px;" />',
-                obj.image.url,
+                '<img src="{}" alt="{}" style="width: 56px; height: 56px; object-fit: contain; border-radius: 8px; background: #f6fafb;" />',
+                reverse("item_image", args=[obj.pk]),
                 obj.title,
             )
         return "No image"
 
     @admin.display(description="Image preview")
     def image_preview_large(self, obj):
-        if obj.image:
+        if obj.image or obj.image_data:
             return format_html(
-                '<img src="{}" alt="{}" style="max-width: 220px; max-height: 220px; object-fit: cover; border-radius: 12px;" />',
-                obj.image.url,
+                '<img src="{}" alt="{}" style="max-width: 220px; max-height: 220px; object-fit: contain; border-radius: 12px; background: #f6fafb;" />',
+                reverse("item_image", args=[obj.pk]),
                 obj.title,
             )
         return "No image uploaded"

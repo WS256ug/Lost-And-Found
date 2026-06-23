@@ -18,6 +18,11 @@
         <p class="admin-stat__value">{{ found_items }}</p>
     </article>
     <article class="admin-stat">
+        <p class="admin-stat__label">Total claims</p>
+        <p class="admin-stat__value">{{ total_claims }}</p>
+        <p class="admin-stat__meta">{{ pending_claims }} pending review{{ pending_claims|pluralize }}</p>
+    </article>
+    <article class="admin-stat">
         <p class="admin-stat__label">Registered users</p>
         <p class="admin-stat__value">{{ total_users }}</p>
         <p class="admin-stat__meta">{{ staff_users }} staff, {{ student_profiles }} students</p>

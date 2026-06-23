@@ -417,6 +417,29 @@ class ItemViewsTests(TestCase):
         self.assertContains(response, "Recent conversations")
         self.assertNotContains(response, "Returned items")
 
+    def test_admin_dashboard_shows_claim_summary_card(self):
+        pending_claimant = User.objects.create_user(username="pending-claimant")
+        reviewed_claimant = User.objects.create_user(username="reviewed-claimant")
+        Claim.objects.create(
+            item=self.found_item,
+            claimant=pending_claimant,
+            proof_details="The phone has a cracked top corner.",
+        )
+        Claim.objects.create(
+            item=self.found_item,
+            claimant=reviewed_claimant,
+            proof_details="The case has my initials inside.",
+            status=Claim.Status.APPROVED,
+        )
+        self.client.login(username="admin1", password="StrongPass123")
+
+        response = self.client.get(reverse("admin_dashboard"))
+
+        self.assertEqual(response.context["total_claims"], 2)
+        self.assertEqual(response.context["pending_claims"], 1)
+        self.assertContains(response, "Total claims")
+        self.assertContains(response, "1 pending review")
+
     def test_admin_dashboard_redirects_non_staff_user(self):
         self.client.login(username="staff1", password="StrongPass123")
 

@@ -562,6 +562,10 @@ def _save_item_report(request, report_type, status):
 def admin_dashboard(request):
     recent_items = Item.objects.select_related("reported_by")[:6]
     recent_users = User.objects.order_by("-date_joined")[:6]
+    claim_counts = Claim.objects.aggregate(
+        total=Count("id"),
+        pending=Count("id", filter=Q(status=Claim.Status.PENDING)),
+    )
     recent_conversations = Conversation.objects.select_related(
         "item",
         "item__reported_by",
@@ -580,6 +584,8 @@ def admin_dashboard(request):
         "total_items": Item.objects.count(),
         "lost_items": Item.objects.filter(report_type=Item.ReportType.LOST).count(),
         "found_items": Item.objects.filter(report_type=Item.ReportType.FOUND).count(),
+        "total_claims": claim_counts["total"],
+        "pending_claims": claim_counts["pending"],
         "total_users": User.objects.count(),
         "staff_users": User.objects.filter(is_staff=True).count(),
         "student_profiles": Profile.objects.filter(role=Profile.Role.STUDENT).count(),

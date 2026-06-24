@@ -1,15 +1,6 @@
 {
-  "builds": [
-    {
-      "src": "lostfound/wsgi.py",
-      "use": "@vercel/python"
-    }
-  ],
-  "routes": [
-    {
-      "src": "/(.*)",
-      "dest": "lostfound/wsgi.py"
-    }
-  ],
+
+
+
   "buildCommand": "python manage.py collectstatic --noinput && python manage.py migrate --noinput"
 }
